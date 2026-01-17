@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesehan Lamacca - Toko Online</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        :root {
+            --primary-blue: #004aad;
+            --primary-deep: #002d62;
+            --gold-gradient: linear-gradient(135deg, #ffbd59 0%, #ff9100 100%);
+            --soft-bg: #f8fafd;
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--soft-bg); padding-bottom: 90px; margin: 0; overflow-x: hidden; }
+
+        /* --- AUTH SCREEN --- */
+        #auth-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(0,45,98,0.9), rgba(0,74,173,0.8)), 
+                        url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80');
+            background-size: cover; background-position: center;
+            z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .glass-card { background: #fff; border-radius: 30px; width: 100%; max-width: 400px; padding: 35px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); }
+
+        /* --- MODERN HEADER --- */
+        .header-lux {
+            background: linear-gradient(135deg, var(--primary-deep) 0%, var(--primary-blue) 100%);
+            padding: 25px 20px 70px; border-radius: 0 0 40px 40px; color: white; position: relative;
+        }
+        .search-box {
+            position: absolute; bottom: -22px; left: 20px; right: 20px;
+            background: white; border-radius: 15px; padding: 10px 15px;
+            display: flex; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .search-box input { border: none; width: 100%; margin-left: 10px; outline: none; font-size: 14px; }
+
+        /* --- PROMO --- */
+        .promo-scroll { overflow-x: auto; white-space: nowrap; padding: 15px 20px; scrollbar-width: none; }
+        .promo-card {
+            display: inline-block; width: 280px; height: 120px; margin-right: 15px;
+            border-radius: 20px; padding: 20px; color: white; position: relative; overflow: hidden;
+        }
+        .promo-1 { background: linear-gradient(45deg, #ff9100, #ffbd59); }
+        .promo-2 { background: linear-gradient(45deg, #00b4db, #0083b0); }
+
+        /* --- BEST SELLER --- */
+        .best-seller-wrapper { overflow-x: auto; white-space: nowrap; padding: 5px 20px; scrollbar-width: none; }
+        .best-card {
+            display: inline-block; width: 140px; margin-right: 12px; background: white;
+            border-radius: 18px; padding: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center; cursor: pointer;
+        }
+        .best-card img { width: 100%; height: 100px; object-fit: cover; border-radius: 12px; margin-bottom: 8px; }
+
+        /* --- MENU --- */
+        .category-wrapper { overflow-x: auto; white-space: nowrap; padding: 10px 20px; scrollbar-width: none; }
+        .cat-pill { display: inline-block; padding: 10px 22px; border-radius: 15px; background: white; margin-right: 10px; font-size: 13px; font-weight: 700; color: #666; border: none; }
+        .cat-pill.active { background: var(--primary-blue); color: white; }
+
+        .menu-card { background: white; border-radius: 22px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.04); border: none; height: 100%; position: relative; cursor: pointer; }
+        .menu-img-container { position: relative; width: 100%; height: 130px; }
+        .menu-img { height: 100%; width: 100%; object-fit: cover; }
+        .is-habis .menu-img { filter: grayscale(1) brightness(0.6); }
+        .habis-overlay { position: absolute; top:0; left:0; width:100%; height:100%; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.3); }
+        .is-habis .habis-overlay { display: flex; }
+        .price-tag { position: absolute; bottom: 8px; right: 8px; background: rgba(255,255,255,0.9); padding: 3px 10px; border-radius: 8px; font-weight: 800; color: var(--primary-blue); font-size: 11px; }
+
+        /* --- NAV & FLOATING --- */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: white; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -10px 30px rgba(0,0,0,0.08); z-index: 999; border-radius: 25px 25px 0 0; }
+        .nav-item-btn { text-align: center; color: #a0aec0; border: none; background: none; flex: 1; font-size: 11px; font-weight: 600; }
+        .nav-item-btn.active { color: var(--primary-blue); }
+        .nav-item-btn i { font-size: 22px; margin-bottom: 4px; display: block; }
+
+        .cart-bar { position: fixed; bottom: 90px; left: 20px; right: 20px; background: var(--primary-deep); color: white; padding: 15px 25px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 998; display: none; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        
+        .whatsapp-float {
+            position: fixed; bottom: 160px; right: 20px; width: 55px; height: 55px;
+            background: #25d366; color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 997; text-decoration: none;
+        }
+
+        .pay-info-box { background: #fff3cd; border: 1px dashed #ffc107; border-radius: 15px; padding: 12px; margin-top: 10px; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-screen">
+        <div class="glass-card animate__animated animate__zoomIn">
+            <div class="text-center mb-4">
+                <div class="bg-primary text-white rounded-4 d-inline-block p-3 mb-3"><i class="fas fa-store fa-2x"></i></div>
+                <h4 class="fw-bold">Lesehan Lamacca</h4>
+                <p class="text-muted small">Cita Rasa Otentik di Tangan Anda</p>
+            </div>
+            <ul class="nav nav-pills nav-fill bg-light p-1 rounded-pill mb-4">
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pills-login">Login</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#pills-signup">Daftar</button></li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="pills-login">
+                    <input type="email" id="logEmail" class="form-control mb-3" placeholder="Email">
+                    <input type="password" id="logPass" class="form-control mb-4" placeholder="Password">
+                    <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold" onclick="handleLogin()">MASUK</button>
+                </div>
+                <div class="tab-pane fade" id="pills-signup">
+                    <input type="text" id="regNama" class="form-control mb-2" placeholder="Nama Lengkap">
+                    <input type="email" id="regEmail" class="form-control mb-2" placeholder="Email">
+                    <input type="password" id="regPass" class="form-control mb-4" placeholder="Password">
+                    <button class="btn btn-success w-100 rounded-pill py-2 fw-bold" onclick="handleSignup()">DAFTAR SEKARANG</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-app" style="display:none;">
+        <div id="view-home">
+            <div class="header-lux">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="mb-0 opacity-75 small">Lokasi Anda</p>
+                        <h6 class="fw-bold"><i class="fas fa-map-marker-alt text-warning me-1"></i> Makassar, Indonesia</h6>
+                    </div>
+                    <div class="bg-white bg-opacity-25 rounded-circle p-2"><i class="fas fa-bell"></i></div>
+                </div>
+                <h4 class="mt-4 fw-bold">Halo, <span id="userDisplay">Pelanggan</span>!</h4>
+                <div class="search-box">
+                    <i class="fas fa-search text-muted"></i>
+                    <input type="text" placeholder="Cari menu favorit..." onkeyup="searchMenu(this.value)">
+                </div>
+            </div>
+
+            <div style="margin-top: 40px;">
+                <div class="promo-scroll">
+                    <div class="promo-card promo-1">
+                        <h6 class="fw-bold mb-1">Diskon 20%</h6>
+                        <p class="small mb-0">Khusus pengguna baru!</p>
+                        <i class="fas fa-percentage position-absolute opacity-25" style="font-size: 80px; bottom: -10px; right: -10px;"></i>
+                    </div>
+                    <div class="promo-card promo-2">
+                        <h6 class="fw-bold mb-1">Gratis Ongkir</h6>
+                        <p class="small mb-0">Min. belanja Rp 50rb</p>
+                        <i class="fas fa-motorcycle position-absolute opacity-25" style="font-size: 80px; bottom: -10px; right: -10px;"></i>
+                    </div>
+                </div>
+
+                <div class="px-3 mt-2"><h6 class="fw-bold"><i class="fas fa-fire text-danger me-1"></i> Terlaris</h6></div>
+                <div class="best-seller-wrapper" id="bestSellerGrid"></div>
+
+                <div class="px-3 mt-4"><h6 class="fw-bold">Kategori</h6></div>
+                <div class="category-wrapper" id="catList"></div>
+
+                <div class="container mt-2">
+                    <div class="row g-3 px-1" id="menuGrid"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-orders" style="display: none;">
+            <div class="p-3 bg-white border-bottom text-center"><h5 class="fw-bold mb-0">Pesanan Saya</h5></div>
+            <div class="container mt-3" id="orderHistoryList"></div>
+        </div>
+
+        <div id="view-profile" style="display: none;">
+            <div class="p-4 text-center bg-white border-bottom">
+                <div class="position-relative d-inline-block">
+                    <img src="" id="profImg" class="rounded-circle border shadow-sm" style="width:100px; height:100px; object-fit:cover;">
+                    <label for="imgInp" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 border border-white" style="cursor:pointer;"><i class="fas fa-camera fa-xs"></i></label>
+                    <input type="file" id="imgInp" hidden onchange="uploadAvatar(this)">
+                </div>
+                <h5 class="fw-bold mt-3 mb-0" id="profNama">Nama</h5>
+                <p class="text-muted small" id="profEmail">Email</p>
+            </div>
+            <div class="container mt-3">
+                <div class="card p-3 border-0 rounded-4 shadow-sm">
+                    <label class="small fw-bold text-muted">Nomor WA</label>
+                    <input type="number" id="upWA" class="form-control border-0 bg-light mb-3" placeholder="Contoh: 08123456789">
+                    <label class="small fw-bold text-muted">Alamat Pengiriman</label>
+                    <textarea id="upAlamat" class="form-control border-0 bg-light mb-3" rows="3" placeholder="Alamat Lengkap"></textarea>
+                    <button class="btn btn-primary w-100 rounded-pill fw-bold" onclick="saveProfile()">Simpan Profil</button>
+                    <button class="btn btn-link text-danger w-100 mt-2" onclick="handleLogout()">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <a href="https://wa.me/628123456789" class="whatsapp-float animate__animated animate__bounceIn" target="_blank"><i class="fab fa-whatsapp"></i></a>
+
+        <div class="cart-bar animate__animated animate__fadeInUp" id="cartBar" onclick="processCheckout()">
+            <div class="d-flex align-items-center"><div class="bg-white text-primary rounded-pill px-3 fw-bold me-2" id="cartQty">0</div><span class="small fw-bold">Checkout Pesanan</span></div>
+            <div id="cartTotal" class="fw-bold">Rp 0</div>
+        </div>
+
+        <div class="bottom-nav">
+            <button class="nav-item-btn active" id="btn-home" onclick="switchView('home')"><i class="fas fa-home"></i> Beranda</button>
+            <button class="nav-item-btn" id="btn-orders" onclick="switchView('orders')"><i class="fas fa-receipt"></i> Pesanan</button>
+            <button class="nav-item-btn" id="btn-profile" onclick="switchView('profile')"><i class="fas fa-user-circle"></i> Profil</button>
+        </div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getDatabase, ref, set, get, onValue, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBWz63o_JFK3Ucvb7IuXI1cNO8SXMHvsEA",
+        authDomain: "kasirmaccanew.firebaseapp.com",
+        databaseURL: "https://kasirmaccanew-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "kasirmaccanew"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    let currentUser = null;
+    let masterMenu = [];
+    let cart = [];
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            const snap = await get(ref(db, `users/${user.uid}`));
+            if(snap.exists()) {
+                document.getElementById('userDisplay').innerText = snap.val().nama;
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                loadMenuData();
+            }
+        } else {
+            document.getElementById('auth-screen').style.display = 'flex';
+            document.getElementById('main-app').style.display = 'none';
+        }
+    });
+
+    function loadMenuData() {
+        onValue(ref(db, 'master_menu'), (snap) => {
+            masterMenu = [];
+            if(snap.exists()) {
+                Object.keys(snap.val()).forEach(k => masterMenu.push({id: k, ...snap.val()[k]}));
+                renderBestSeller();
+                renderCategories();
+                renderMenu('Semua');
+            }
+        });
+    }
+
+    function renderBestSeller() {
+        const best = masterMenu.filter(m => m.status !== 'Habis').slice(0, 6);
+        document.getElementById('bestSellerGrid').innerHTML = best.map(m => `
+            <div class="best-card" onclick="addToCart('${m.id}')">
+                <img src="${m.image || 'https://via.placeholder.com/150'}">
+                <div class="small fw-bold text-truncate">${m.name}</div>
+                <div class="text-primary fw-bold" style="font-size:11px;">Rp ${parseInt(m.price).toLocaleString()}</div>
+            </div>
+        `).join('');
+    }
+
+    function renderCategories() {
+        const cats = ['Semua', ...new Set(masterMenu.map(m => m.category))];
+        document.getElementById('catList').innerHTML = cats.map(c => `<button class="cat-pill ${c==='Semua'?'active':''}" onclick="renderMenu('${c}', this)">${c}</button>`).join('');
+    }
+
+    window.renderMenu = (cat, el) => {
+        if(el) { document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active')); el.classList.add('active'); }
+        const filtered = cat === 'Semua' ? masterMenu : masterMenu.filter(m => m.category === cat);
+        buildMenuGrid(filtered);
+    };
+
+    window.searchMenu = (val) => {
+        const filtered = masterMenu.filter(m => m.name.toLowerCase().includes(val.toLowerCase()));
+        buildMenuGrid(filtered);
+    };
+
+    function buildMenuGrid(data) {
+        document.getElementById('menuGrid').innerHTML = data.map(m => {
+            const isHabis = m.status === 'Habis';
+            return `
+            <div class="col-6">
+                <div class="menu-card ${isHabis ? 'is-habis' : ''}" onclick="${isHabis ? '' : `addToCart('${m.id}')`}">
+                    <div class="menu-img-container">
+                        <img src="${m.image || 'https://via.placeholder.com/150'}" class="menu-img">
+                        <div class="habis-overlay"><span class="badge bg-danger">HABIS</span></div>
+                        <div class="price-tag">Rp ${parseInt(m.price).toLocaleString()}</div>
+                    </div>
+                    <div class="p-3 text-center">
+                        <div class="fw-bold small text-truncate mb-2">${m.name}</div>
+                        <button class="btn btn-primary btn-sm w-100 rounded-pill fw-bold" ${isHabis ? 'disabled' : ''}>
+                            ${isHabis ? 'HABIS' : 'TAMBAH'}
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    window.addToCart = (id) => {
+        const item = masterMenu.find(m => m.id === id);
+        if(!item || item.status === 'Habis') return;
+        const inCart = cart.find(c => c.id === id);
+        inCart ? inCart.qty++ : cart.push({...item, qty: 1});
+        updateCartUI();
+    };
+
+    function updateCartUI() {
+        const bar = document.getElementById('cartBar');
+        if(cart.length > 0) {
+            bar.style.display = 'flex';
+            document.getElementById('cartQty').innerText = cart.reduce((a,b) => a + b.qty, 0);
+            document.getElementById('cartTotal').innerText = 'Rp ' + cart.reduce((a,b) => a + (b.qty * b.price), 0).toLocaleString();
+        } else bar.style.display = 'none';
+    }
+
+    window.processCheckout = async () => {
+        const total = cart.reduce((a,b) => a + (b.qty * b.price), 0);
+        const itemsHtml = cart.map(i => `<div class="d-flex justify-content-between small mb-1"><span>${i.name} x${i.qty}</span><b>Rp ${(i.qty*i.price).toLocaleString()}</b></div>`).join('');
+        
+        // AMBIL DATA PROFIL OTOMATIS
+        const uSnap = await get(ref(db, `users/${currentUser.uid}`));
+        const userData = uSnap.val() || {};
+
+        const { value: res } = await Swal.fire({
+            title: '<span style="font-weight:800; font-size:18px;"><i class="fas fa-shopping-basket text-primary me-2"></i>Konfirmasi Pesanan</span>',
+            html: `
+                <div class="text-start bg-light p-3 rounded-4 mb-3 border shadow-sm">${itemsHtml}<hr><div class="d-flex justify-content-between fw-800 fs-5"><span>TOTAL</span><span class="text-primary">Rp ${total.toLocaleString()}</span></div></div>
+                <p class="small fw-800 mb-2 text-start text-muted"><i class="fas fa-motorcycle me-1"></i> LAYANAN:</p>
+                <div class="btn-group w-100 mb-3">
+                    <input type="radio" class="btn-check" name="tipe" id="t1" value="Antar" checked>
+                    <label class="btn btn-outline-primary rounded-start-4 py-2 fw-bold" for="t1"><i class="fas fa-motorcycle"></i> ANTAR</label>
+                    <input type="radio" class="btn-check" name="tipe" id="t2" value="Jemput">
+                    <label class="btn btn-outline-primary rounded-end-4 py-2 fw-bold" for="t2"><i class="fas fa-store"></i> AMBIL</label>
+                </div>
+                <p class="small fw-800 mb-2 text-start text-muted"><i class="fas fa-credit-card me-1"></i> PEMBAYARAN:</p>
+                <div class="btn-group w-100 mb-2">
+                    <input type="radio" class="btn-check" name="bayar" id="b1" value="Tunai (COD)" checked onclick="updatePayInfo('COD')">
+                    <label class="btn btn-outline-success rounded-start-4 py-2 fw-bold" for="b1">COD</label>
+                    <input type="radio" class="btn-check" name="bayar" id="b2" value="Transfer Bank" onclick="updatePayInfo('BANK')">
+                    <label class="btn btn-outline-success py-2 fw-bold" for="b2">BANK</label>
+                    <input type="radio" class="btn-check" name="bayar" id="b3" value="QRIS" onclick="updatePayInfo('QRIS')">
+                    <label class="btn btn-outline-success rounded-end-4 py-2 fw-bold" for="b3">QRIS</label>
+                </div>
+                <div id="pay-info-box" class="pay-info-box"><i class="fas fa-info-circle me-1"></i> Bayar tunai saat pesanan tiba.</div>
+            `,
+            showCancelButton: true, confirmButtonColor: '#004aad', confirmButtonText: 'Kirim Pesanan',
+            preConfirm: () => ({ tipe: document.querySelector('input[name="tipe"]:checked').value, bayar: document.querySelector('input[name="bayar"]:checked').value })
+        });
+
+        if(res) {
+            const order = { 
+                uid: currentUser.uid, 
+                pelanggan: userData.nama || 'Pelanggan', 
+                telepon: userData.wa || '-', 
+                alamat: userData.alamat || '-', 
+                items: cart, total_bayar: total, tipe: res.tipe, metode_bayar: res.bayar, 
+                status: 'Pending', waktu: new Date().toLocaleString('id-ID'), timestamp: Date.now() 
+            };
+            push(ref(db, 'pesanan_masuk'), order).then(() => { 
+                Swal.fire({icon: 'success', title: 'Berhasil!', text: 'Pesanan terkirim ke kasir.', showConfirmButton: false, timer: 1500}); 
+                cart = []; updateCartUI(); switchView('orders');
+            });
+        }
+    };
+
+    window.updatePayInfo = (type) => {
+        const box = document.getElementById('pay-info-box');
+        if(type === 'COD') box.innerHTML = '<i class="fas fa-info-circle me-1"></i> Bayar tunai saat pesanan tiba.';
+        if(type === 'BANK') box.innerHTML = '<div class="text-center fw-bold">BANK BRI<br><span class="fs-6">0403 0101 2546 539</span><br>A/N SULKIFLI</div>';
+        if(type === 'QRIS') box.innerHTML = '<div class="text-center fw-bold mb-1">SCAN QRIS</div><img src="https://i.ibb.co.com/mC8SDk1j/Whats-App-Image-2026-01-01-at-16-20-37.jpg" class="img-fluid rounded-3" style="max-height:130px;">';
+    };
+
+    window.switchView = (view) => {
+        ['home', 'orders', 'profile'].forEach(v => document.getElementById('view-'+v).style.display = v === view ? 'block' : 'none');
+        document.querySelectorAll('.nav-item-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-' + view).classList.add('active');
+        if(view === 'orders') loadOrderHistory();
+        if(view === 'profile') loadProfile();
+        window.scrollTo(0,0);
+    };
+
+    function loadOrderHistory() {
+        onValue(ref(db, 'pesanan_masuk'), (snap) => {
+            const list = document.getElementById('orderHistoryList'); list.innerHTML = '';
+            if(snap.exists()) {
+                const myOrders = Object.keys(snap.val()).map(k => ({id:k, ...snap.val()[k]})).filter(o => o.uid === currentUser.uid).sort((a,b) => b.timestamp - a.timestamp);
+                myOrders.forEach(o => {
+                    list.innerHTML += `<div class="card p-3 border-0 rounded-4 shadow-sm mb-3"><div class="d-flex justify-content-between small"><span class="text-muted">${o.waktu}</span><span class="badge bg-warning text-dark rounded-pill">${o.status}</span></div><div class="fw-bold mt-2">${o.items.map(i => i.name+' x'+i.qty).join(', ')}</div><div class="text-primary fw-800 mt-1">Rp ${o.total_bayar.toLocaleString()}</div></div>`;
+                });
+            }
+        });
+    }
+
+    async function loadProfile() {
+        const snap = await get(ref(db, `users/${currentUser.uid}`)); const u = snap.val();
+        document.getElementById('profNama').innerText = u.nama;
+        document.getElementById('profEmail').innerText = u.email;
+        document.getElementById('profImg').src = u.avatar || `https://ui-avatars.com/api/?name=${u.nama}&background=004aad&color=fff`;
+        document.getElementById('upWA').value = u.wa || '';
+        document.getElementById('upAlamat').value = u.alamat || '';
+    }
+
+    window.saveProfile = () => {
+        const up = { wa: document.getElementById('upWA').value, alamat: document.getElementById('upAlamat').value };
+        update(ref(db, `users/${currentUser.uid}`), up).then(() => Swal.fire('Sukses', 'Profil Diupdate', 'success'));
+    };
+
+    window.uploadAvatar = (input) => {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => update(ref(db, `users/${currentUser.uid}`), { avatar: e.target.result }).then(() => { document.getElementById('profImg').src = e.target.result; });
+            reader.readAsDataURL(input.files[0]);
+        }
+    };
+
+    window.handleLogin = () => {
+        const e = document.getElementById('logEmail').value, p = document.getElementById('logPass').value;
+        signInWithEmailAndPassword(auth, e, p).catch(() => Swal.fire('Gagal', 'Email/Pass salah', 'error'));
+    };
+
+    window.handleSignup = () => {
+        const n = document.getElementById('regNama').value, e = document.getElementById('regEmail').value, p = document.getElementById('regPass').value;
+        createUserWithEmailAndPassword(auth, e, p).then(r => set(ref(db, `users/${r.user.uid}`), { nama: n, email: e, wa: '', alamat: '', avatar: '' }));
+    };
+
+    window.handleLogout = () => signOut(auth).then(() => location.reload());
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
