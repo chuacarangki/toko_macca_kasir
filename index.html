@@ -169,7 +169,7 @@
             </div>
         </div>
 
-        <a href="https://wa.me/628123456789" class="whatsapp-float animate__animated animate__bounceIn" target="_blank"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://wa.me/6282191262682" class="whatsapp-float animate__animated animate__bounceIn" target="_blank"><i class="fab fa-whatsapp"></i></a>
 
         <div class="cart-bar animate__animated animate__fadeInUp" id="cartBar" onclick="processCheckout()">
             <div class="d-flex align-items-center"><div class="bg-white text-primary rounded-pill px-3 fw-bold me-2" id="cartQty">0</div><span class="small fw-bold">Checkout Pesanan</span></div>
@@ -200,12 +200,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- KONFIGURASI ONGKIR ---
-const TOKO_LAT = -5.2039023; 
-const TOKO_LNG = 119.5002886;
-const TARIF_PER_KM = 2000;    
-const MIN_ONGKIR = 5000;      
-const MIN_BELANJA_FREE = 50000;
+        const TOKO_LAT = -5.2039023; 
+        const TOKO_LNG = 119.5002886;
+        const TARIF_PER_KM = 2000;    
+        const MIN_ONGKIR = 5000;      
+        const MIN_BELANJA_FREE = 50000;
 
         let userData = null;
         let masterMenu = [];
@@ -275,9 +274,13 @@ const MIN_BELANJA_FREE = 50000;
         };
 
         window.switchView = (view) => {
-            ['home', 'orders', 'profile'].forEach(v => document.getElementById('view-'+v).style.display = v === view ? 'block' : 'none');
+            ['home', 'orders', 'profile'].forEach(v => {
+                const el = document.getElementById('view-'+v);
+                if(el) el.style.display = v === view ? 'block' : 'none';
+            });
             document.querySelectorAll('.nav-item-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-' + view).classList.add('active');
+            const btn = document.getElementById('btn-' + view);
+            if(btn) btn.classList.add('active');
             if(view === 'orders') loadOrderHistory();
             if(view === 'profile') loadProfile();
         };
@@ -324,14 +327,30 @@ const MIN_BELANJA_FREE = 50000;
 
         window.toggleOngkir = (isAntar, ongkir, belanja) => {
             const row = document.getElementById('row-ongkir');
-            row.style.opacity = isAntar ? '1' : '0.3';
-            document.getElementById('text-total').innerText = 'Rp ' + (belanja + (isAntar ? ongkir : 0)).toLocaleString();
+            if(row) row.style.opacity = isAntar ? '1' : '0.3';
+            const totalDisplay = document.getElementById('text-total');
+            if(totalDisplay) totalDisplay.innerText = 'Rp ' + (belanja + (isAntar ? ongkir : 0)).toLocaleString();
         };
 
         window.updatePayInfo = (t) => {
             const b = document.getElementById('pay-info-box');
-            if(t==='COD') b.innerHTML = 'Bayar tunai saat pesanan tiba.';
-            if(t==='BANK') b.innerHTML = 'BRI: 0403 0101 2546 539 A/N SULKIFLI';
+            if(!b) return;
+            if(t==='COD') {
+                b.innerHTML = '<div class="animate__animated animate__fadeIn"><i class="fas fa-hand-holding-usd me-1 text-success"></i> Bayar tunai saat pesanan tiba.</div>';
+            } else if(t==='BANK') {
+                b.innerHTML = '<div class="animate__animated animate__fadeIn"><i class="fas fa-university me-1 text-primary"></i> BRI: 0403 0101 2546 539 <br>A/N SULKIFLI</div>';
+            } else if(t==='QRIS') {
+                b.innerHTML = `
+                    <div class="animate__animated animate__fadeIn text-center mt-2">
+                        <p class="mb-2 fw-bold" style="font-size:12px;">Scan QRIS Lesehan Lamacca:</p>
+                        <img src="https://i.ibb.co.com/mC8SDk1j/Whats-App-Image-2026-01-01-at-16-20-37.jpg" 
+                             class="img-fluid rounded border shadow-sm p-2 bg-white" 
+                             style="width: 180px; height: auto;">
+                        <p class="mt-2 mb-0 fw-bold text-danger" style="font-size:10px;">
+                            <i class="fas fa-info-circle"></i> Screenshot & kirim bukti ke WA
+                        </p>
+                    </div>`;
+            }
         };
 
         // --- INTERNAL FUNCTIONS ---
@@ -343,6 +362,7 @@ const MIN_BELANJA_FREE = 50000;
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('main-app').style.display = 'block';
                 loadMenuData();
+                listenToOrderStatus(); // AKTIFKAN NOTIFIKASI
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('main-app').style.display = 'none';
@@ -441,7 +461,8 @@ const MIN_BELANJA_FREE = 50000;
                     title: 'Lengkapi Profil',
                     text: 'Silakan isi Alamat & Titik Lokasi di menu Profil agar kami bisa menghitung ongkir.',
                     icon: 'warning',
-                    confirmButtonText: 'Ke Profil'
+                    confirmButtonText: 'Ke Profil',
+                    confirmButtonColor: '#004aad'
                 }).then(() => switchView('profile'));
             }
 
@@ -455,44 +476,69 @@ const MIN_BELANJA_FREE = 50000;
             const ongkirFinal = isFree ? 0 : ongkirNormal;
 
             const itemsHtml = cart.map(i => `
-                <div class="d-flex justify-content-between small mb-1">
-                    <span>${i.name} x${i.qty}</span>
-                    <b>Rp ${(i.qty*i.price).toLocaleString()}</b>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="text-start">
+                        <div class="fw-bold" style="font-size: 14px;">${i.name}</div>
+                        <div class="text-muted" style="font-size: 12px;">${i.qty} x Rp ${i.price.toLocaleString()}</div>
+                    </div>
+                    <div class="fw-bold text-dark">Rp ${(i.qty*i.price).toLocaleString()}</div>
                 </div>`).join('');
 
             const { value: res } = await Swal.fire({
-                title: 'Konfirmasi Pesanan',
+                title: '<span style="font-size: 18px; font-weight: 800;">Konfirmasi Pesanan</span>',
                 html: `
-                    <div class="text-start bg-light p-3 rounded-4 mb-3 border">
-                        ${itemsHtml}
-                        <hr>
-                        <div id="detail-biaya">
-                            <div class="d-flex justify-content-between small"><span>Subtotal</span><span>Rp ${totalBelanja.toLocaleString()}</span></div>
-                            <div class="d-flex justify-content-between small text-danger" id="row-ongkir">
-                                <span>Ongkir (${jarakKM.toFixed(1)} km)</span>
-                                <span id="val-ongkir">${isFree ? '<del class="text-muted">Rp '+ongkirNormal.toLocaleString()+'</del> GRATIS' : 'Rp '+ongkirNormal.toLocaleString()}</span>
-                            </div>
-                            <div class="d-flex justify-content-between fw-bold mt-2 pt-2 border-top">
-                                <span>TOTAL BAYAR</span>
-                                <span id="text-total" class="text-primary">Rp ${(totalBelanja + ongkirFinal).toLocaleString()}</span>
+                    <div class="text-start p-1">
+                        <div class="mb-3 p-3 rounded-4 bg-light border-0">
+                            <div class="small fw-bold text-muted mb-2 text-uppercase" style="letter-spacing: 1px;">Item Pesanan</div>
+                            ${itemsHtml}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="small fw-bold text-muted mb-2 text-uppercase">Metode Pengiriman</div>
+                            <div class="btn-group w-100 shadow-sm rounded-pill overflow-hidden" style="border: 1px solid #eee;">
+                                <input type="radio" class="btn-check" name="tipe" id="t1" value="Antar" checked onclick="toggleOngkir(true, ${ongkirFinal}, ${totalBelanja})">
+                                <label class="btn btn-outline-primary border-0 py-2 fw-bold" for="t1"><i class="fas fa-motorcycle me-2"></i>ANTAR</label>
+                                
+                                <input type="radio" class="btn-check" name="tipe" id="t2" value="Jemput" onclick="toggleOngkir(false, 0, ${totalBelanja})">
+                                <label class="btn btn-outline-primary border-0 py-2 fw-bold" for="t2"><i class="fas fa-walking me-2"></i>AMBIL</label>
                             </div>
                         </div>
-                        ${!isFree ? `<div class="alert alert-info py-2 px-3 mt-3 mb-0 small" style="font-size:11px">
-                            <i class="fas fa-info-circle"></i> Belanja <b>Rp ${(MIN_BELANJA_FREE - totalBelanja).toLocaleString()}</b> lagi untuk <b>Gratis Ongkir!</b>
-                        </div>` : ''}
+
+                        <div class="mb-3">
+                            <div class="small fw-bold text-muted mb-2 text-uppercase">Metode Pembayaran</div>
+                            <div class="btn-group w-100 shadow-sm rounded-pill overflow-hidden" style="border: 1px solid #eee; font-size: 11px;">
+                                <input type="radio" class="btn-check" name="bayar" id="b1" value="COD" checked onclick="updatePayInfo('COD')">
+                                <label class="btn btn-outline-success border-0 py-2 fw-bold" for="b1">COD</label>
+                                
+                                <input type="radio" class="btn-check" name="bayar" id="b2" value="Bank" onclick="updatePayInfo('BANK')">
+                                <label class="btn btn-outline-success border-0 py-2 fw-bold" for="b2">TRANSFER</label>
+
+                                <input type="radio" class="btn-check" name="bayar" id="b3" value="QRIS" onclick="updatePayInfo('QRIS')">
+                                <label class="btn btn-outline-success border-0 py-2 fw-bold" for="b3">QRIS</label>
+                            </div>
+                            <div id="pay-info-box" class="pay-info-box mt-2 text-center" style="font-size: 12px; min-height: 40px;">
+                                Bayar tunai saat pesanan tiba.
+                            </div>
+                        </div>
+
+                        <div class="card border-0 rounded-4 bg-primary text-white p-3 shadow-lg">
+                            <div class="d-flex justify-content-between small opacity-75"><span>Subtotal</span><span>Rp ${totalBelanja.toLocaleString()}</span></div>
+                            <div class="d-flex justify-content-between small opacity-75" id="row-ongkir">
+                                <span>Ongkir (${jarakKM.toFixed(1)} km)</span>
+                                <span id="val-ongkir">${isFree ? 'GRATIS' : 'Rp '+ongkirNormal.toLocaleString()}</span>
+                            </div>
+                            <hr class="my-2 opacity-25">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">TOTAL BAYAR</span>
+                                <span id="text-total" style="font-size: 20px; font-weight: 800;">Rp ${(totalBelanja + ongkirFinal).toLocaleString()}</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="btn-group w-100 mb-3 shadow-sm">
-                        <input type="radio" class="btn-check" name="tipe" id="t1" value="Antar" checked onclick="toggleOngkir(true, ${ongkirFinal}, ${totalBelanja})"><label class="btn btn-outline-primary" for="t1">ANTAR</label>
-                        <input type="radio" class="btn-check" name="tipe" id="t2" value="Jemput" onclick="toggleOngkir(false, 0, ${totalBelanja})"><label class="btn btn-outline-primary" for="t2">AMBIL</label>
-                    </div>
-                    <div class="btn-group w-100 mb-2">
-                        <input type="radio" class="btn-check" name="bayar" id="b1" value="COD" checked onclick="updatePayInfo('COD')"><label class="btn btn-outline-success" for="b1">COD</label>
-                        <input type="radio" class="btn-check" name="bayar" id="b2" value="Bank" onclick="updatePayInfo('BANK')"><label class="btn btn-outline-success" for="b2">TRANSFER</label>
-                    </div>
-                    <div id="pay-info-box" class="pay-info-box">Bayar tunai saat pesanan tiba.</div>
                 `,
                 showCancelButton: true,
+                cancelButtonText: 'Batal',
                 confirmButtonText: 'Kirim Pesanan',
+                confirmButtonColor: '#004aad',
                 preConfirm: () => ({ 
                     tipe: document.querySelector('input[name="tipe"]:checked').value, 
                     bayar: document.querySelector('input[name="bayar"]:checked').value,
@@ -508,12 +554,58 @@ const MIN_BELANJA_FREE = 50000;
                     tipe: res.tipe, metode_bayar: res.bayar, status: 'Pending', 
                     waktu: new Date().toLocaleString('id-ID'), timestamp: Date.now() 
                 };
+                
                 push(ref(db, 'pesanan_masuk'), order).then(() => { 
-                    Swal.fire({ title: 'Berhasil!', text: 'Pesanan terkirim!', icon: 'success', timer: 2000 });
+                    if (order.metode_bayar === 'COD') {
+                        Swal.fire({ title: 'Berhasil!', text: 'Pesanan COD Anda telah tersimpan.', icon: 'success', confirmButtonColor: '#004aad' });
+                    } else {
+                        Swal.fire({ 
+                            title: 'Pesanan Tersimpan!', 
+                            text: 'Silakan klik tombol di bawah untuk kirim bukti bayar ke WA.', 
+                            icon: 'info', 
+                            showCancelButton: true,
+                            confirmButtonText: '<i class="fab fa-whatsapp me-2"></i>Kirim Bukti Bayar',
+                            confirmButtonColor: '#25d366'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                let pesanChat = `Halo Admin Lesehan Lamacca, saya ingin kirim bukti bayar untuk pesanan saya (Metode: ${order.metode_bayar}).`;
+                                window.open(`https://wa.me/6282191262682?text=${pesanChat}`, '_blank');
+                            }
+                        });
+                    }
                     cart = []; updateCartUI(); switchView('orders');
                 });
             }
         };
+
+        // --- NOTIFIKASI STATUS PESANAN ---
+        function listenToOrderStatus() {
+            if (!userData) return;
+            onValue(ref(db, 'pesanan_masuk'), (snap) => {
+                if (snap.exists()) {
+                    const data = snap.val();
+                    const now = Date.now();
+                    Object.keys(data).forEach(key => {
+                        const order = data[key];
+                        if (order.uid === userData.uid && order.status === 'Diterima' && !localStorage.getItem('notif_accept_' + key) && (now - order.timestamp) < 86400000) { 
+                            localStorage.setItem('notif_accept_' + key, 'true');
+                            
+                            // Suara Notifikasi
+                            const audio = new Audio('https://github.com/chuacarangki/toko_macca_kasir/raw/refs/heads/main/notif.mp3');
+                            audio.play().catch(e => console.log("Sound blocked by browser."));
+
+                            // Visual Notification (Toast)
+                            const Toast = Swal.mixin({
+                                toast: true, position: 'top-end', showConfirmButton: false, timer: 6000, timerProgressBar: true
+                            });
+                            Toast.fire({
+                                icon: 'success', title: 'Pesanan Diterima! 👨‍🍳', text: 'Admin sedang memproses pesananmu.'
+                            });
+                        }
+                    });
+                }
+            });
+        }
 
         checkAuth();
     </script>
