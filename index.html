@@ -204,10 +204,26 @@
         const db = getDatabase(app);
 
         const TOKO_LAT = -5.2039023; 
-        const TOKO_LNG = 119.5002886;
-        const TARIF_PER_KM = 2000;    
-        const MIN_ONGKIR = 5000;      
-        const MIN_BELANJA_FREE = 100000;
+        const TOKO_LNG = 119.5002886; 
+        const MIN_ONGKIR = 5000;
+const TARIF_PER_METER = 5; // Rp 5 per meter
+const MIN_BELANJA_FREE = 100000;
+
+function hitungOngkirBossku(jarakDalamMeter, totalBelanja) {
+    // 1. Cek Gratis Ongkir dulu
+    if (totalBelanja >= MIN_BELANJA_FREE) {
+        return 0;
+    }
+
+    // 2. Logika Jarak
+    if (jarakDalamMeter <= 1000) {
+        // Jarak 0-1km (0-1000m) harganya flat 5k
+        return MIN_ONGKIR;
+    } else {
+        // Jarak di atas 1km, hitung per meter
+        return jarakDalamMeter * TARIF_PER_METER;
+    }
+}
 
         let userData = null;
         let masterMenu = [];
