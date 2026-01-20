@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kitchen Hub • Macca Elite</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <style>
+        :root {
+            --macca-primary: #2563eb;
+            --macca-warning: #f59e0b;
+            --macca-dark: #0f172a;
+            --bg-main: #f8fafc;
+            --card-radius: 24px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-main);
+            color: var(--macca-dark);
+            margin: 0;
+            padding-bottom: 120px;
+        }
+
+        #login-screen {
+            position: fixed; inset: 0; background: #000;
+            display: flex; align-items: center; justify-content: center; z-index: 10000;
+            background-image: radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.2) 0, transparent 50%), radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.1) 0, transparent 50%);
+        }
+
+        #main-app { display: none; }
+
+        .navbar-macca {
+            background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px);
+            padding: 1.2rem; position: sticky; top: 0; z-index: 1000;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .order-card {
+            background: #ffffff; border-radius: var(--card-radius);
+            margin-bottom: 1.5rem; border: 1px solid rgba(0,0,0,0.04);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            transition: all 0.3s ease; overflow: hidden;
+        }
+
+        .card-header-luxury { padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .items-container { padding: 0 1.5rem 0.5rem 1.5rem; }
+        .item-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px dashed #e2e8f0; }
+        .qty-circle { background: #eff6ff; color: var(--macca-primary); min-width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; margin-right: 12px; }
+        .menu-name { font-weight: 600; font-size: 1rem; color: #334155; }
+
+        /* Style Tab Stok & Laporan dengan Shadow Berwarna */
+        .stok-card { 
+            background: white; padding: 1.5rem; border-radius: 25px; 
+            border: none; text-align: center; transition: 0.3s;
+            position: relative; overflow: hidden; cursor: pointer;
+        }
+        .stok-card:active { transform: scale(0.95); }
+
+        /* Shadow Glow Random Colors */
+        .glow-blue { box-shadow: 0 10px 20px rgba(37, 99, 235, 0.15); border-bottom: 4px solid #2563eb; }
+        .glow-purple { box-shadow: 0 10px 20px rgba(139, 92, 246, 0.15); border-bottom: 4px solid #8b5cf6; }
+        .glow-pink { box-shadow: 0 10px 20px rgba(236, 72, 153, 0.15); border-bottom: 4px solid #ec4899; }
+        .glow-orange { box-shadow: 0 10px 20px rgba(249, 115, 22, 0.15); border-bottom: 4px solid #f97316; }
+        .glow-green { box-shadow: 0 10px 20px rgba(16, 185, 129, 0.15); border-bottom: 4px solid #10b981; }
+
+        .stok-val { font-size: 2rem; font-weight: 900; color: #1e293b; display: block; margin: 5px 0; }
+        .stok-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
+
+        .service-tag {
+            padding: 8px 1.5rem; background: #fafafa;
+            font-size: 0.75rem; font-weight: 700; color: #64748b;
+            display: flex; align-items: center; gap: 6px; border-top: 1px solid #f1f5f9;
+        }
+
+        /* Tombol Sesuai Request */
+        .btn-action { width: 100%; padding: 1.2rem; border: none; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-finish.online { background: #2563eb; color: #fff; } /* BIRU */
+        .btn-finish.offline { background: #f59e0b; color: #000; } /* KUNING */
+
+        .bottom-nav {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 92%; max-width: 450px; background: #0f172a;
+            display: flex; gap: 10px; padding: 10px; border-radius: 25px; z-index: 2000;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+
+        .nav-btn {
+            flex: 1; border: none; background: transparent; color: #94a3b8;
+            padding: 10px 0; border-radius: 18px; display: flex;
+            flex-direction: column; align-items: center; gap: 4px; font-weight: 700; font-size: 0.65rem;
+        }
+        .nav-btn.active { background: #2563eb; color: #fff; }
+
+        .report-item-card {
+            background: white; border-radius: 20px; padding: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;
+            margin-bottom: 12px;
+        }
+
+        /* Modal History Stok */
+        #modal-stok-detail {
+            display: none; position: fixed; inset: 0; z-index: 10000;
+            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px);
+            padding: 20px; align-items: center; justify-content: center;
+        }
+        .modal-content-macca {
+            max-width: 500px; width: 100%; margin: 20px auto; background: #fff;
+            height: 80vh; border-radius: 30px; display: flex; flex-direction: column;
+            overflow: hidden; animation: fadeInUp 0.4s ease;
+        }
+        .history-list { flex: 1; overflow-y: auto; padding: 20px; background: #f8fafc; }
+        .history-item {
+            background: white; padding: 15px; border-radius: 18px;
+            margin-bottom: 12px; display: flex; justify-content: space-between;
+            align-items: center; border: 1px solid #eef2f7;
+        }
+    </style>
+</head>
+<body>
+
+<audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+
+<div id="login-screen">
+    <div class="text-center animate__animated animate__fadeIn">
+        <div class="mb-4 bg-white bg-opacity-10 p-4 rounded-circle d-inline-block">
+            <i data-lucide="chef-hat" size="48" class="text-white"></i>
+        </div>
+        <h3 class="text-white fw-800 mb-4">DAPUR MACCA</h3>
+        <button class="btn btn-primary px-5 py-3 rounded-pill fw-bold" onclick="directLogin()">OPEN KITCHEN</button>
+    </div>
+</div>
+
+<div id="main-app">
+    <nav class="navbar-macca">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <div>
+                <p class="text-primary fw-bold mb-0" style="font-size: 10px; letter-spacing: 1px;">LIVE DASHBOARD</p>
+                <h4 class="fw-800 mb-0" id="page-title">Antrean Aktif</h4>
+            </div>
+            <i data-lucide="refresh-cw" size="20" class="text-muted" onclick="location.reload()"></i>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div id="tab-home" class="tab-content row g-3"></div>
+        
+        <div id="tab-stock" class="tab-content d-none">
+            <div class="row g-3">
+                <div class="col-6" onclick="openStokDetail('MENTAH')"><div class="stok-card glow-blue"><i data-lucide="drumstick" class="text-primary mb-2"></i><span class="stok-label">Ayam Mentah</span><span id="stok-mentah" class="stok-val">0</span></div></div>
+                <div class="col-6" onclick="openStokDetail('UNGKEP')"><div class="stok-card glow-purple"><i data-lucide="flame" class="text-purple mb-2" style="color:#8b5cf6"></i><span class="stok-label">Ayam Ungkep</span><span id="stok-ungkep" class="stok-val">0</span></div></div>
+                <div class="col-6" onclick="openStokDetail('CRISPY')"><div class="stok-card glow-pink"><i data-lucide="utensils" class="text-pink mb-2" style="color:#ec4899"></i><span class="stok-label">Ayam Crispy</span><span id="stok-crispy" class="stok-val">0</span></div></div>
+                <div class="col-6" onclick="openStokDetail('IKAN')"><div class="stok-card glow-orange"><i data-lucide="fish" class="text-orange mb-2" style="color:#f97316"></i><span class="stok-label">Ikan Bandeng</span><span id="stok-ikan" class="stok-val">0</span></div></div>
+                <div class="col-12" onclick="openStokDetail('IKANLAUT')"><div class="stok-card glow-green"><i data-lucide="waves" class="text-green mb-2" style="color:#10b981"></i><span class="stok-label">Persediaan Ikan Laut</span><span id="stok-ikanlaut" class="stok-val">0</span></div></div>
+            </div>
+        </div>
+
+        <div id="tab-report" class="tab-content d-none">
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <div class="bg-white p-3 rounded-4 border-0 shadow-sm">
+                        <label class="small fw-800 text-muted mb-2 d-block">FILTER TANGGAL</label>
+                        <input type="date" id="report-date" class="form-control border-0 bg-light fw-bold" onchange="renderReport()">
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stok-card glow-blue">
+                        <i data-lucide="shopping-cart" class="text-primary mb-1"></i>
+                        <span id="stat-total-order" class="stok-val">0</span>
+                        <span class="stok-label">Total Order</span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stok-card glow-green">
+                        <i data-lucide="check-circle-2" class="text-success mb-1"></i>
+                        <span id="stat-total-items" class="stok-val">0</span>
+                        <span class="stok-label">Total Menu</span>
+                    </div>
+                </div>
+            </div>
+            <div id="report-list" class="px-2"></div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="nav-btn active" onclick="switchTab('home', this)"><i data-lucide="layout-list"></i><span>ANTREAN</span></button>
+        <button class="nav-btn" onclick="switchTab('stock', this)"><i data-lucide="boxes"></i><span>STOK</span></button>
+        <button class="nav-btn" onclick="switchTab('report', this)"><i data-lucide="bar-chart-3"></i><span>LAPORAN</span></button>
+    </div>
+</div>
+
+<div id="modal-stok-detail">
+    <div class="modal-content-macca">
+        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+            <div>
+                <h5 id="m-stok-title" class="fw-800 mb-0">DETAIL STOK</h5>
+                <small class="text-muted fw-bold">RIWAYAT AKTIVITAS</small>
+            </div>
+            <button class="btn-close" onclick="closeStokModal()"></button>
+        </div>
+        <div id="m-stok-list" class="history-list"></div>
+        <div class="p-3">
+            <button class="btn btn-dark w-100 py-3 rounded-4 fw-bold" onclick="closeStokModal()">TUTUP</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    const cfgMain = { apiKey: "AIzaSyBWz63o_JFK3Ucvb7IuXI1cNO8SXMHvsEA", databaseURL: "https://kasirmaccanew-default-rtdb.asia-southeast1.firebasedatabase.app" };
+    const cfgStok = { apiKey: "AIzaSyCCmKgOnBFpluEKuycYjrBRm4zbxrHI1P8", databaseURL: "https://stocklistmacca-default-rtdb.asia-southeast1.firebasedatabase.app" };
+    
+    if (!firebase.apps.length) firebase.initializeApp(cfgMain, "MAIN");
+    firebase.initializeApp(cfgStok, "STOK");
+
+    const db = firebase.app("MAIN").database();
+    const dbStok = firebase.app("STOK").database();
+    let dataCache = {};
+    let initialLoad = true;
+    let flowStokRaw = [];
+
+    document.getElementById('report-date').valueAsDate = new Date();
+
+    window.directLogin = () => {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-app').style.display = 'block';
+        startListening();
+        syncStock();
+        lucide.createIcons();
+    };
+
+    window.switchTab = (tab, el) => {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('d-none'));
+        document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.remove('d-none');
+        el.classList.add('active');
+        const titles = { 'home': 'Antrean Aktif', 'stock': 'Persediaan Bahan', 'report': 'Laporan Selesai' };
+        document.getElementById('page-title').innerText = titles[tab];
+        if(tab === 'report') renderReport();
+        lucide.createIcons();
+    };
+
+    function syncStock() {
+        dbStok.ref('stok_macca_v14_flow').on('value', snap => {
+            let m=0, u=0, c=0, i=0, il=0;
+            flowStokRaw = [];
+            
+            snap.forEach(child => {
+                const v = child.val();
+                if(!v) return;
+
+                const qty = Number(v.qty) || 0;
+                const type = (v.type || "").toUpperCase();
+                const status = (v.status || "").toUpperCase();
+
+                if(type === "POIN_OUT") return;
+                flowStokRaw.push({...v, type, status, qty});
+
+                const flow = (status === 'MASUK' || status === 'TAMBAH') ? qty : -qty;
+
+                if (type === 'MENTAH') m += flow;
+                else if (type === 'UNGKEP') u += flow;
+                else if (type === 'CRISPY' || type === 'AYAM CRISPY') c += flow;
+                else if (type === 'IKAN') i += flow;
+                else if (type === 'IKANLAUT') il += flow;
+            });
+
+            document.getElementById('stok-mentah').innerText = m;
+            document.getElementById('stok-ungkep').innerText = u;
+            document.getElementById('stok-crispy').innerText = c;
+            document.getElementById('stok-ikan').innerText = i;
+            document.getElementById('stok-ikanlaut').innerText = il;
+        });
+    }
+
+    window.openStokDetail = (targetType) => {
+        const modal = document.getElementById('modal-stok-detail');
+        const list = document.getElementById('m-stok-list');
+        const title = document.getElementById('m-stok-title');
+        
+        modal.style.display = 'flex';
+        title.innerText = targetType === 'CRISPY' ? 'AYAM CRISPY' : targetType.replace('IKANLAUT', 'IKAN LAUT');
+        list.innerHTML = '';
+
+        const history = flowStokRaw
+            .filter(x => (targetType === 'CRISPY' ? (x.type === 'CRISPY' || x.type === 'AYAM CRISPY') : x.type === targetType))
+            .sort((a, b) => b.time - a.time);
+
+        if(history.length === 0) {
+            list.innerHTML = '<div class="text-center py-5 opacity-50 fw-bold">BELUM ADA RIWAYAT</div>';
+            return;
+        }
+
+        history.forEach(x => {
+            const isIn = (x.status === 'MASUK' || x.status === 'TAMBAH');
+            const dateStr = new Date(x.time).toLocaleString('id-ID', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
+            
+            list.innerHTML += `
+                <div class="history-item">
+                    <div>
+                        <p class="mb-0 fw-800 text-dark small">${x.status} ${x.note ? '- ' + x.note : ''}</p>
+                        <small class="text-muted" style="font-size:10px">${dateStr}</small>
+                    </div>
+                    <div class="fw-900 ${isIn ? 'text-success' : 'text-danger'}">
+                        ${isIn ? '+' : '-'}${x.qty}
+                    </div>
+                </div>`;
+        });
+    };
+
+    window.closeStokModal = () => {
+        document.getElementById('modal-stok-detail').style.display = 'none';
+    };
+
+    function startListening() {
+        db.ref('pesanan_masuk').on('value', s => {
+            const d = s.val();
+            if(d) Object.keys(d).forEach(k => {
+                if(!dataCache[k] && !initialLoad) document.getElementById('notif-sound').play();
+                dataCache[k] = {...d[k], source:'ONLINE', ts: d[k].timestamp || Date.now()};
+            });
+            render(); initialLoad = false;
+        });
+        db.ref('transaksi').on('value', s => {
+            const d = s.val();
+            if(d) Object.keys(d).forEach(k => dataCache[k] = {...d[k], source:'OFFLINE', ts: new Date(d[k].time || Date.now()).getTime()});
+            render();
+        });
+    }
+
+    window.siapSaji = (id, source) => {
+        if(source === 'ONLINE') db.ref(`pesanan_masuk/${id}`).update({ status: 'Menunggu Driver' });
+        const now = new Date();
+        localStorage.setItem('done_macca_' + id, JSON.stringify({ time: now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), date: now.toISOString().split('T')[0] }));
+        render();
+        Swal.fire({ toast: true, position: 'top', icon: 'success', title: 'Siap Disajikan!', showConfirmButton: false, timer: 1000 });
+    };
+
+    window.renderReport = () => {
+        const targetDate = document.getElementById('report-date').value;
+        const list = document.getElementById('report-list');
+        list.innerHTML = ''; let tO = 0; let tI = 0;
+        
+        Object.keys(dataCache).forEach(key => {
+            const o = dataCache[key]; 
+            const raw = localStorage.getItem('done_macca_' + key);
+            if(!raw) return;
+            const dI = JSON.parse(raw);
+
+            if(dI.date === targetDate) {
+                tO++; 
+                const itemsHtml = (o.items || []).map(i => {
+                    tI += (parseInt(i.qty) || 1);
+                    return `<div class="small fw-bold border-bottom py-1">× ${i.qty || 1} ${i.name || i.nama}</div>`;
+                }).join('');
+
+                list.innerHTML += `
+                    <div class="report-item-card animate__animated animate__fadeIn">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="fw-800 mb-0">${o.name || o.pelanggan}</h6>
+                                <span class="badge bg-light text-primary p-0" style="font-size:10px">${dI.time} • ${o.source}</span>
+                            </div>
+                            <i data-lucide="check-circle" class="text-success" size="18"></i>
+                        </div>
+                        <div class="mt-2 p-2 bg-light rounded-3">${itemsHtml}</div>
+                    </div>`;
+            }
+        });
+        document.getElementById('stat-total-order').innerText = tO;
+        document.getElementById('stat-total-items').innerText = tI;
+        lucide.createIcons();
+    };
+
+    function render() {
+        const home = document.getElementById('tab-home');
+        home.innerHTML = '';
+        const keys = Object.keys(dataCache).sort((a,b) => dataCache[a].ts - dataCache[b].ts);
+
+        keys.forEach(key => {
+            const o = dataCache[key]; 
+            if(localStorage.getItem('done_macca_' + key)) return;
+            if(o.source === 'ONLINE' && o.status !== 'Diterima') return;
+
+            const isOnline = o.source === 'ONLINE';
+            const listMenu = (o.items || []).map(i => `<div class="item-row"><div class="qty-circle">${i.qty || 1}</div><div class="menu-name">${i.name || i.nama}</div></div>`).join('');
+            
+            home.innerHTML += `
+                <div class="col-12 col-md-6 col-lg-4 animate__animated animate__fadeInUp">
+                    <div class="order-card">
+                        <div class="card-header-luxury">
+                            <div><h4 class="fw-800 mb-0" style="font-size:1.1rem">${o.name || o.pelanggan}</h4><small class="text-muted fw-bold" style="font-size:0.7rem">${o.source}</small></div>
+                            <span class="badge bg-light text-dark rounded-pill border px-2 py-1" style="font-size:0.7rem"><i data-lucide="clock" size="12" class="me-1"></i>${o.waktu || 'BARU'}</span>
+                        </div>
+                        <div class="items-container">${listMenu}</div>
+                        <div class="service-tag">
+                            <i data-lucide="${isOnline ? 'truck' : (o.service === 'Dine In' ? 'utensils' : 'shopping-bag')}" size="14"></i>
+                            ${isOnline ? 'DELIVERY ONLINE' : (o.service || 'Dine In')}
+                        </div>
+                        <button class="btn-action btn-finish ${isOnline ? 'online' : 'offline'}" onclick="siapSaji('${key}', '${o.source}')">SELESAI MASAK</button>
+                    </div>
+                </div>`;
+        });
+        lucide.createIcons();
+    }
+</script>
+</body>
+</html>
