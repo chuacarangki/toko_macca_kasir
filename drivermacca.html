@@ -309,22 +309,20 @@ window.selesaiAntar = (id) => {
     };
 
    window.directMap = (lat, lng) => {
-    // Validasi koordinat
-    if (!lat || !lng || lat === "undefined" || lng === "undefined" || lat === "" || lng === "") {
+    if (!lat || !lng || lat === "undefined" || lng === "undefined" || lat === "") {
         return Swal.fire({
             icon: 'info',
-            title: 'Titik Map Tidak Ada',
-            text: 'Pelanggan tidak menandai lokasi, silakan gunakan alamat manual.',
+            title: 'Titik Peta Kosong',
+            text: 'Gunakan alamat manual karena pelanggan tidak menandai lokasi.',
             background: '#172035',
             color: '#fff'
         });
     }
 
-    // Format URL Navigasi yang benar
-    // Menggunakan universal link agar otomatis membuka aplikasi di Android/iOS
+    // URL Intent untuk Android & iOS (Langsung mode navigasi driving)
     const gmapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
-    
-    // Eksekusi pembukaan link
+
+    // Membuka aplikasi Maps
     window.open(gmapsUrl, '_blank');
 };
     function startListening() {
@@ -354,48 +352,65 @@ window.selesaiAntar = (id) => {
         const historyList = [];
         let anyOrder = false;
 
-        Object.keys(globalOrders).forEach(id => {
-            const o = globalOrders[id];
-            
-            if(o.status === 'Diterima' || o.status === 'Menunggu Driver' || o.status === 'Diantar') {
-                anyOrder = true;
-                const isMine = o.driver_name === currentDriver;
-                const isTakenByOther = o.status === 'Diantar' && !isMine;
-                const waNumber = o.telepon || o.wa || '';
+       Object.keys(globalOrders).forEach(id => {
+    const o = globalOrders[id];
+    
+    if(o.status === 'Diterima' || o.status === 'Menunggu Driver' || o.status === 'Diantar') {
+        anyOrder = true;
+        const isMine = o.driver_name === currentDriver;
+        const isTakenByOther = o.status === 'Diantar' && !isMine;
+        const waNumber = o.telepon || o.wa || '';
 
-                activeTab.innerHTML += `
-                    <div class="col-12 animate__animated animate__fadeInUp">
-                        <div class="order-card" style="${isMine ? 'border: 1px solid #00d2ff' : ''}">
-                            <div class="card-top d-flex justify-content-between align-items-start">
-                                <div class="flex-grow-1">
-                                    <h4 class="cust-name" onclick="openWA('${waNumber}')">${(o.pelanggan || o.name || 'PELANGGAN').toUpperCase()}</h4>
-                                    <span class="cust-phone" onclick="openWA('${waNumber}')"><i class="fa-brands fa-whatsapp me-1"></i>${waNumber}</span>
-                                    <p class="small text-white-50 mb-0 mt-2"><i class="fa-solid fa-location-arrow me-1"></i> ${o.alamat || 'Alamat Manual'}</p>
-                                </div>
-                                <div class="text-end">
-                                    <div class="fw-800 text-info">Rp ${o.total_bayar?.toLocaleString()}</div>
-                                    <span class="badge ${isMine ? 'bg-info text-dark' : 'bg-secondary'} mt-1">${o.status === 'Diantar' ? 'PROSES' : o.waktu}</span>
-                                </div>
-                            </div>
-                            <div class="action-grid">
-                                <button class="btn-real btn-maps" onclick="directMap('${o.lat}','${o.lng}')">
-                                    <i class="fa-brands fa-google"></i>MAPS
-                                </button>
-                                
-                                ${o.status === 'Diterima' ? 
-                                    `<button class="btn-real btn-dapur"><i class="fa-solid fa-fire-burner"></i>PROSES DAPUR</button>` :
-                                  (isTakenByOther ? 
-                                    `<button class="btn-real btn-locked"><i class="fa-solid fa-lock"></i>DIANTAR ${o.driver_name}</button>` : 
-                                  (!isMine ? 
-                                    `<button class="btn-real btn-ambil" style="grid-column: span 2;" onclick="ambilPesanan('${id}')"><i class="fa-solid fa-motorcycle"></i>AMBIL PESANAN</button>` : 
-                                    `<button class="btn-real btn-cancel" onclick="lepasPesanan('${id}')"><i class="fa-solid fa-xmark"></i>LEPAS</button>
-                                     <button class="btn-real btn-done" onclick="selesaiAntar('${id}')"><i class="fa-solid fa-check-double"></i>SELESAI</button>`
-                                  ))
-                                }
-                            </div>
+        // ────────────────────────────────────────────────
+        // BADGE METODE BAYAR (baru ditambahkan di sini)
+        // ────────────────────────────────────────────────
+        let metodeBadge = '';
+        if (o.metode_bayar === 'COD') {
+            metodeBadge = '<span class="badge bg-success text-white px-2 py-1 ms-2" style="font-size:0.75rem;">COD</span>';
+        } else if (o.metode_bayar === 'Bank') {
+            metodeBadge = '<span class="badge bg-primary text-white px-2 py-1 ms-2" style="font-size:0.75rem;">TRANSFER</span>';
+        } else if (o.metode_bayar === 'QRIS') {
+            metodeBadge = '<span class="badge bg-info text-white px-2 py-1 ms-2" style="font-size:0.75rem;">QRIS</span>';
+        } else if (o.metode_bayar) {
+            metodeBadge = `<span class="badge bg-secondary text-white px-2 py-1 ms-2" style="font-size:0.75rem;">${o.metode_bayar}</span>`;
+        }
+
+        activeTab.innerHTML += `
+            <div class="col-12 animate__animated animate__fadeInUp">
+                <div class="order-card" style="${isMine ? 'border: 1px solid #00d2ff' : ''}">
+                    <div class="card-top d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h4 class="cust-name" onclick="openWA('${waNumber}')">${(o.pelanggan || o.name || 'PELANGGAN').toUpperCase()}</h4>
+                            <span class="cust-phone" onclick="openWA('${waNumber}')"><i class="fa-brands fa-whatsapp me-1"></i>${waNumber}</span>
+                            <p class="small text-white-50 mb-0 mt-2"><i class="fa-solid fa-location-arrow me-1"></i> ${o.alamat || 'Alamat Manual'}</p>
                         </div>
-                    </div>`;
-            }
+                        <div class="text-end">
+                            <div class="fw-800 text-info d-flex align-items-center justify-content-end flex-wrap gap-2">
+                                Rp ${o.total_bayar?.toLocaleString()}
+                                ${metodeBadge}   <!-- <-- BADGE DITEMPATKAN DI SINI -->
+                            </div>
+                            <span class="badge ${isMine ? 'bg-info text-dark' : 'bg-secondary'} mt-1">${o.status === 'Diantar' ? 'PROSES' : o.waktu}</span>
+                        </div>
+                    </div>
+                    <div class="action-grid">
+                        <button class="btn-real btn-maps" onclick="directMap('${o.lat}','${o.lng}')">
+                            <i class="fa-brands fa-google"></i>MAPS
+                        </button>
+                        
+                        ${o.status === 'Diterima' ? 
+                            `<button class="btn-real btn-dapur"><i class="fa-solid fa-fire-burner"></i>PROSES DAPUR</button>` :
+                          (isTakenByOther ? 
+                            `<button class="btn-real btn-locked"><i class="fa-solid fa-lock"></i>DIANTAR ${o.driver_name}</button>` : 
+                          (!isMine ? 
+                            `<button class="btn-real btn-ambil" style="grid-column: span 2;" onclick="ambilPesanan('${id}')"><i class="fa-solid fa-motorcycle"></i>AMBIL PESANAN</button>` : 
+                            `<button class="btn-real btn-cancel" onclick="lepasPesanan('${id}')"><i class="fa-solid fa-xmark"></i>LEPAS</button>
+                             <button class="btn-real btn-done" onclick="selesaiAntar('${id}')"><i class="fa-solid fa-check-double"></i>SELESAI</button>`
+                          ))
+                        }
+                    </div>
+                </div>
+            </div>`;
+    }
 
             if(o.status === 'Sukses' && o.driver_name) {
                 if(pointsMap[o.driver_name] !== undefined) pointsMap[o.driver_name] += 500;
