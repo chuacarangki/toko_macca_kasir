@@ -308,18 +308,25 @@ window.selesaiAntar = (id) => {
         window.open(`https://wa.me/${cleanWA}`, '_blank');
     };
 
-    window.directMap = (lat, lng) => {
-        if(!lat || !lng || lat === "undefined" || lng === "undefined") return Swal.fire('Manual', 'Alamat tanpa titik peta.', 'info');
-        
-        const gmapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
-        const nativeUrl = `google.navigation:q=${lat},${lng}&mode=d`;
-        
-        window.location.href = nativeUrl;
-        setTimeout(() => {
-            window.open(gmapsUrl, '_blank');
-        }, 500);
-    };
+   window.directMap = (lat, lng) => {
+    // Validasi koordinat
+    if (!lat || !lng || lat === "undefined" || lng === "undefined" || lat === "" || lng === "") {
+        return Swal.fire({
+            icon: 'info',
+            title: 'Titik Map Tidak Ada',
+            text: 'Pelanggan tidak menandai lokasi, silakan gunakan alamat manual.',
+            background: '#172035',
+            color: '#fff'
+        });
+    }
 
+    // Format URL Navigasi yang benar
+    // Menggunakan universal link agar otomatis membuka aplikasi di Android/iOS
+    const gmapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+    
+    // Eksekusi pembukaan link
+    window.open(gmapsUrl, '_blank');
+};
     function startListening() {
         onValue(ref(db, 'pesanan_masuk'), (s) => {
             const data = s.val() || {};
