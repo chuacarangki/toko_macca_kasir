@@ -3,1442 +3,627 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MACCA POS Ultimate V.9.9.8 - Dashboard Edition</title>
+    <title>Lesehan Lamacca - Toko Online</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
-        :root {
-            --primary-deep: #002d62;
-            --primary-blue: #004aad;
-            --accent-gold: #ffbd59;
-            --gold-gradient: linear-gradient(135deg, #ffbd59 0%, #ff9100 100%);
-            --blue-gradient: linear-gradient(135deg, #004aad 0%, #002d62 100%);
-            --green-gradient: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-            --purple-gradient: linear-gradient(135deg, #8e44ad 0%, #2980b9 100%);
-            --fire-gradient: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
-            --glass: rgba(255, 255, 255, 0.9);
-            --sidebar-width: 260px;
+        :root { --primary-blue: #004aad; --primary-deep: #002d62; --soft-bg: #f8fafd; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--soft-bg); padding-bottom: 90px; margin: 0; overflow-x: hidden; }
+
+        #auth-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(0,45,98,0.9), rgba(0,74,173,0.8)), 
+                        url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80');
+            background-size: cover; background-position: center;
+            z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;
         }
+        .glass-card { background: #fff; border-radius: 30px; width: 100%; max-width: 400px; padding: 35px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); }
 
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; border: 2px solid #f1f5f9; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary-blue); }
-
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0f4f8; color: #1a1a1a; overflow-x: hidden; }
-
-        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; left: 0; top: 0; background: var(--blue-gradient); z-index: 1050; transition: all 0.3s ease; display: flex; flex-direction: column; padding: 25px 15px; color: white; }
-        .main-content { margin-left: var(--sidebar-width); transition: all 0.3s ease; min-height: 100vh; }
-        .nav-sidebar .nav-link { color: rgba(255,255,255,0.7); padding: 12px 20px; border-radius: 15px; margin-bottom: 8px; font-weight: 700; display: flex; align-items: center; gap: 12px; transition: 0.3s; border: none; background: transparent; width: 100%; text-align: left; }
-        .nav-sidebar .nav-link.active { background: var(--gold-gradient) !important; color: black !important; box-shadow: 0 8px 15px rgba(255, 189, 89, 0.2); }
-
-        .mobile-toggle { display: none; position: fixed; top: 15px; left: 15px; z-index: 1100; background: var(--primary-blue); color: white; border: none; padding: 10px 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1040; backdrop-filter: blur(3px); }
-
-        @media (max-width: 991px) {
-            .sidebar { left: -100%; }
-            .sidebar.active { left: 0; }
-            .main-content { margin-left: 0; }
-            .mobile-toggle { display: block; }
-            .sidebar-overlay.active { display: block; }
+        .header-lux {
+            background: linear-gradient(135deg, var(--primary-deep) 0%, var(--primary-blue) 100%);
+            padding: 25px 20px 70px; border-radius: 0 0 40px 40px; color: white; position: relative;
         }
+        .search-box {
+            position: absolute; bottom: -22px; left: 20px; right: 20px;
+            background: white; border-radius: 15px; padding: 10px 15px;
+            display: flex; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .search-box input { border: none; width: 100%; margin-left: 10px; outline: none; font-size: 14px; }
 
-        .category-btn { white-space: nowrap; padding: 10px 20px; border-radius: 15px; background: white; border: 1px solid rgba(0,0,0,0.05); font-weight: 700; color: var(--primary-blue); margin-right: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.3s; font-size: 0.9rem; }
-        .category-btn.active { background: var(--gold-gradient); color: black; border-color: transparent; box-shadow: 0 8px 15px rgba(255, 189, 89, 0.3); }
-
-        .sub-cat-bar { background: rgba(0,0,0,0.03); padding: 10px; border-radius: 15px; display: flex; gap: 8px; overflow-x: auto; margin-bottom: 20px; }
-        .sub-btn { white-space: nowrap; padding: 6px 15px; border-radius: 10px; border: 1px solid #ddd; background: #fff; font-size: 0.8rem; font-weight: 600; color: #555; transition: 0.2s; }
-        .sub-btn.active { background: var(--primary-blue); color: white; border-color: var(--primary-blue); }
-
-        .card-menu { border: none; border-radius: 25px; overflow: hidden; background: white; transition: 0.3s; cursor: pointer; height: 100%; box-shadow: 0 8px 20px rgba(0,0,0,0.04); border: 1px solid rgba(255, 189, 89, 0.1); position: relative; }
-        .card-menu:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); border: 1px solid var(--accent-gold); }
-        .card-menu.status-habis { opacity: 0.6; filter: grayscale(1); cursor: not-allowed; }
+        .promo-scroll, .best-seller-wrapper, .category-wrapper { overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+        .promo-scroll::-webkit-scrollbar, .best-seller-wrapper::-webkit-scrollbar, .category-wrapper::-webkit-scrollbar { display: none; }
         
-        .menu-img-container { position: relative; height: 140px; overflow: hidden; background: #eee; }
-        .menu-img { width: 100%; height: 100%; object-fit: cover; }
-        .habis-label { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; }
-        .price-badge { background: var(--gold-gradient); color: #000; padding: 4px 12px; border-radius: 12px; font-weight: 800; font-size: 0.85rem; margin-top: 5px; display: inline-block; }
+        .promo-card { display: inline-block; width: 280px; height: 120px; margin-right: 15px; border-radius: 20px; padding: 20px; color: white; position: relative; overflow: hidden; }
+        .promo-1 { background: linear-gradient(45deg, #ff9100, #ffbd59); }
+        .promo-2 { background: linear-gradient(45deg, #00b4db, #0083b0); }
 
-        .best-seller-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: var(--fire-gradient);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 12px;
-            font-size: 0.65rem;
-            font-weight: 800;
-            z-index: 10;
-            box-shadow: 0 4px 8px rgba(255, 65, 108, 0.4);
-            animation: pulse 2s infinite;
-        }
+        .best-card { display: inline-block; width: 140px; margin-right: 12px; background: white; border-radius: 18px; padding: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center; cursor: pointer; }
+        .best-card img { width: 100%; height: 100px; object-fit: cover; border-radius: 12px; margin-bottom: 8px; }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
+        .cat-pill { display: inline-block; padding: 10px 22px; border-radius: 15px; background: white; margin-right: 10px; font-size: 13px; font-weight: 700; color: #666; border: none; }
+        .cat-pill.active { background: var(--primary-blue); color: white; }
 
-        .cart-bar-bottom { position: fixed; bottom: 25px; right: 25px; width: 400px; z-index: 1000; pointer-events: none; }
-        .cart-bar-content { pointer-events: all; background: var(--glass); backdrop-filter: blur(15px); padding: 25px; border-radius: 35px; box-shadow: 0 20px 50px rgba(0,45,98,0.25); border: 1px solid rgba(255, 189, 89, 0.3); border-left: 8px solid var(--accent-gold); }
+        .menu-card { background: white; border-radius: 22px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.04); border: none; height: 100%; position: relative; cursor: pointer; transition: 0.3s; }
+        .menu-card:active { transform: scale(0.95); }
+        .menu-img-container { position: relative; width: 100%; height: 130px; }
+        .menu-img { height: 100%; width: 100%; object-fit: cover; }
+        .is-habis .menu-img { filter: grayscale(1) brightness(0.6); }
+        .habis-overlay { position: absolute; top:0; left:0; width:100%; height:100%; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.3); }
+        .is-habis .habis-overlay { display: flex; }
+        .price-tag { position: absolute; bottom: 8px; right: 8px; background: rgba(255,255,255,0.9); padding: 3px 10px; border-radius: 8px; font-weight: 800; color: var(--primary-blue); font-size: 11px; }
 
-        #backToTop {
-            display: none;
-            position: fixed;
-            bottom: 120px;
-            right: 35px;
-            z-index: 1045;
-            border: none;
-            outline: none;
-            background: var(--gold-gradient);
-            color: black;
-            cursor: pointer;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-            transition: 0.3s;
-            font-size: 1.2rem;
-            align-items: center;
-            justify-content: center;
-        }
-        #backToTop:hover { transform: scale(1.1); background: var(--blue-gradient); color: white; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: white; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -10px 30px rgba(0,0,0,0.08); z-index: 999; border-radius: 25px 25px 0 0; }
+        .nav-item-btn { text-align: center; color: #a0aec0; border: none; background: none; flex: 1; font-size: 11px; font-weight: 600; outline: none; }
+        .nav-item-btn.active { color: var(--primary-blue); }
+        .nav-item-btn i { font-size: 22px; margin-bottom: 4px; display: block; }
 
-        .btn-premium { border-radius: 20px; padding: 15px; font-weight: 800; border: none; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
-        .btn-blue { background: var(--blue-gradient); color: white; border: 1px solid var(--accent-gold); }
-        .btn-gold { background: var(--gold-gradient); color: black; }
-        
-        .btn-service, .btn-pay-method { flex: 1; border: none; padding: 10px; border-radius: 12px; font-weight: 700; background: #f1f5f9; transition: 0.3s; color: var(--primary-blue); border: 2px solid transparent; font-size: 0.8rem; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .btn-service.active, .btn-pay-method.active { background: var(--blue-gradient); color: white; border-color: var(--accent-gold); }
-
-        .trx-box { background: var(--primary-blue); color: white; padding: 6px 15px; border-radius: 10px; font-weight: 800; box-shadow: 0 4px 10px rgba(0,74,173,0.2); display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-
-        #login-screen { height: 100vh; background: var(--blue-gradient); display: flex; align-items: center; justify-content: center; position: fixed; width: 100%; z-index: 9999; }
-        
-        @media print {
-            .sidebar, .mobile-toggle, .btn-danger, .trx-box, .no-print, #backToTop { display: none !important; }
-            .main-content { margin: 0 !important; padding: 0 !important; }
-            .table-responsive { overflow: visible !important; }
-        }
-
-        .badge-method { font-size: 0.75rem; padding: 4px 10px; border-radius: 8px; font-weight: 700; text-transform: uppercase; }
-        .badge-dinein { background: #004aad; color: white; }
-        .badge-takeaway { background: #ffbd59; color: black; }
-        .badge-antar { background: #17a2b8; color: white; }
-        .badge-grab { background: #28a745 !important; color: white !important; }
-        .badge-ops { background: #dc3545; color: white; }
-        .badge-masuk { background: #2ecc71; color: white; }
-        .badge-lain { background: #6c757d; color: white; }
-
-        .row-clickable { cursor: pointer; transition: 0.2s; }
-        .row-clickable:hover { background-color: rgba(0, 74, 173, 0.05) !important; }
-
-        .receipt-popup { font-family: 'Courier New', Courier, monospace; color: #333; text-align: left; }
-        .receipt-line { border-top: 1px dashed #ccc; margin: 10px 0; }
-
-        .btn-maps {
-            background-color: #ea4335;
-            color: white;
-            border: none;
-        }
-        .btn-maps:hover {
-            background-color: #c52d27;
-            color: white;
-        }
-        /* Tampilan baru tab PESANAN ONLINE - cuma ini yang ditambah */
-#tab-online .card {
-    box-shadow: 0 10px 30px rgba(0,74,173,0.1);
-}
-#tab-online .table th {
-    border-top: none;
-    padding: 15px 12px;
-}
-#tab-online .table td {
-    padding: 14px 12px;
-    vertical-align: middle;
-}
-#tab-online .btn-maps {
-    background: #ea4335;
-    color: white;
-    font-size: 0.8rem;
-    padding: 6px 12px;
-    border-radius: 8px;
-}
-#tab-online .btn-maps:hover {
-    background: #c52d27;
-}
-#tab-online .badge {
-    font-size: 0.75rem;
-    padding: 5px 10px;
-}
-#tab-online tr:hover {
-    background-color: rgba(0,74,173,0.03);
-}
+        .cart-bar { position: fixed; bottom: 90px; left: 20px; right: 20px; background: var(--primary-deep); color: white; padding: 15px 25px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 998; display: none; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .whatsapp-float { position: fixed; bottom: 160px; right: 20px; width: 55px; height: 55px; background: #25d366; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 997; text-decoration: none; }
+        .pay-info-box { background: #fff3cd; border: 1px dashed #ffc107; border-radius: 15px; padding: 12px; margin-top: 10px; font-size: 13px; }
+        #map { height: 200px; width: 100%; border-radius: 15px; margin-bottom: 15px; border: 1px solid #ddd; z-index: 1; }
     </style>
 </head>
 <body>
 
-<div id="login-screen">
-    <div class="p-5 text-center animate__animated animate__zoomIn" style="width: 95%; max-width: 450px; background: rgba(255,255,255,0.1); backdrop-filter: blur(30px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.2);">
-        <div class="bg-white d-inline-block p-4 rounded-circle mb-4 shadow-lg border border-warning">
-            <i class="fas fa-crown fa-4x text-primary"></i>
-        </div>
-        <h1 class="text-white fw-bold mb-5" style="letter-spacing: 3px;">LESEHAN MACCA</h1>
-        <button class="btn w-100 mb-3 py-3 rounded-pill fw-bold text-primary bg-white shadow" onclick="directLogin('KASIR ARA')">
-            <i class="fas fa-user-tie me-2 text-warning"></i>KASIR ARA
-        </button>
-        <button class="btn w-100 py-3 rounded-pill fw-bold text-primary bg-white shadow" onclick="directLogin('KASIR DILLA')">
-            <i class="fas fa-user-ninja me-2 text-warning"></i>KASIR DILLA
-        </button>
-    </div>
-</div>
-
-<div id="main-app" style="display:none;">
-    <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
-    <button class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-
-    <button id="backToTop" onclick="scrollToTop()" class="d-flex animate__animated"><i class="fas fa-arrow-up"></i></button>
-
-    <div class="sidebar shadow-lg" id="sidebar">
-        <div class="text-center mb-5 mt-2">
-            <h3 class="fw-bold text-white"><i class="fas fa-crown me-2 text-warning"></i>LESEHAN <span class="text-warning">MACCA</span></h3>
-        </div>
-        <div class="nav flex-column nav-sidebar">
-            <button class="nav-link active" id="btn-tab-dashboard" onclick="switchTab('tab-dashboard', this)">
-                <i class="fas fa-house-chimney"></i> <span>DASHBOARD</span>
-            </button>
-            <button class="nav-link" id="btn-tab-kasir" onclick="switchTab('tab-kasir', this)">
-                <i class="fas fa-calculator"></i> <span>KASIR</span>
-            </button>
-            <button class="nav-link" id="btn-tab-online" onclick="switchTab('tab-online', this)">
-                <i class="fas fa-globe"></i> <span>PESANAN ONLINE</span>
-                <span class="badge bg-danger ms-auto rounded-pill" id="online-count" style="display:none;">0</span>
-            </button>
-            <button class="nav-link" id="btn-tab-riwayat" onclick="switchTab('tab-riwayat', this)">
-                <i class="fas fa-receipt"></i> <span>RIWAYAT TRX</span>
-            </button>
-            <button class="nav-link" id="btn-tab-laporan" onclick="switchTab('tab-laporan', this)">
-                <i class="fas fa-chart-pie"></i> <span>LAPORAN</span>
-            </button>
-            <button class="nav-link" data-bs-toggle="modal" data-bs-target="#adminModal">
-                <i class="fas fa-gears"></i> <span>PANEL MENU</span>
-            </button>
-        </div>
-        <div class="mt-auto">
-            <div class="badge bg-white text-primary p-3 rounded-4 border fw-bold shadow-sm w-100 mb-3 text-start">
-                <i class="fas fa-user-circle me-2 text-warning"></i><span id="user-display">Petugas</span>
+    <div id="auth-screen">
+        <div class="glass-card animate__animated animate__zoomIn">
+            <div class="text-center mb-4">
+                <div class="bg-primary text-white rounded-4 d-inline-block p-3 mb-3"><i class="fas fa-store fa-2x"></i></div>
+                <h4 class="fw-bold">LESEHAN MACCA</h4>
+                <p class="animate__animated animate__fadeInUp animate__delay-1s" 
+   style="font-size: 14px; color: #004aad; font-weight: 600; font-style: italic; margin-top: -5px; margin-bottom: 20px;">
+   "Citarasa Autentik, Pesan Mudah dari Mana Saja"
+</p>
             </div>
-            <button class="btn btn-danger w-100 rounded-pill py-2 fw-bold" onclick="location.reload()">
-                <i class="fas fa-sign-out-alt me-2"></i> KELUAR
-            </button>
+            <div class="mb-3">
+                <label class="small fw-bold text-muted">Nama Lengkap</label>
+                <input type="text" id="waNama" class="form-control rounded-pill px-3" placeholder="Contoh: Lesehan Macca">
+            </div>
+            <div class="mb-4">
+                <label class="small fw-bold text-muted">Nomor WhatsApp</label>
+                <input type="number" id="waNomor" class="form-control rounded-pill px-3" placeholder="Contoh: 08123456789">
+            </div>
+            <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold" onclick="handleWaLogin()">MULAI PESAN</button>
         </div>
     </div>
 
-    <div class="main-content">
-         <div id="tab-dashboard" class="tab-pane-custom animate__animated animate__fadeIn">
-            <div class="container-fluid px-4 pt-5 pt-lg-4">
-                <div class="d-flex justify-content-between align-items-center mb-4">
+    <div id="main-app" style="display:none;">
+        <div id="view-home">
+            <div class="header-lux">
+                <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h2 class="fw-bold text-primary mb-0">Halo, <span id="dash-user-name"></span>!</h2>
-                        <p class="text-muted small">Ringkasan performa Lesehan Macca hari ini.</p>
+                        <p class="mb-0 opacity-75 small">Lokasi Anda</p>
+                        <h6 class="fw-bold"><i class="fas fa-map-marker-alt text-warning me-1"></i> Makassar, Indonesia</h6>
                     </div>
-                    <div class="badge bg-white text-primary p-2 px-3 rounded-pill shadow-sm border">
-                        <i class="fas fa-calendar-day me-2 text-warning"></i><span id="dash-date-now"></span>
+                    <div class="bg-white bg-opacity-25 rounded-circle p-2"><i class="fas fa-bell"></i></div>
+                </div>
+                <h4 class="mt-4 fw-bold">Halo, <span id="userDisplay">Pelanggan</span>!</h4>
+                <div class="search-box">
+                    <i class="fas fa-search text-muted"></i>
+                    <input type="text" placeholder="Cari menu favorit..." onkeyup="searchMenu(this.value)">
+                </div>
+            </div>
+
+            <div style="margin-top: 40px;">
+                <div class="promo-scroll px-3">
+                    <div class="promo-card promo-1">
+                        <h6 class="fw-bold mb-1">Diskon 20%</h6>
+                        <p class="small mb-0">Khusus pengguna baru!</p>
+                        <i class="fas fa-percentage position-absolute opacity-25" style="font-size: 80px; bottom: -10px; right: -10px;"></i>
+                    </div>
+                    <div class="promo-card promo-2">
+                        <h6 class="fw-bold mb-1">Gratis Ongkir</h6>
+                        <p class="small mb-0">Min. belanja Rp 50rb</p>
+                        <i class="fas fa-motorcycle position-absolute opacity-25" style="font-size: 80px; bottom: -10px; right: -10px;"></i>
                     </div>
                 </div>
 
-                <div class="row g-3 mb-4">
-                    <div class="col-6 col-md-3">
-                        <div class="p-3 rounded-4 bg-white border-start border-primary border-5 shadow-sm">
-                            <small class="text-muted fw-bold d-block mb-1" style="font-size:0.7rem;">OMZET HARI INI</small>
-                            <h4 class="fw-bold text-primary mb-0" id="dash-omzet">Rp 0</h4>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="p-3 rounded-4 bg-white border-start border-success border-5 shadow-sm">
-                            <small class="text-muted fw-bold d-block mb-1" style="font-size:0.7rem;">TOTAL TRANSAKSI</small>
-                            <h4 class="fw-bold text-success mb-0" id="dash-trx">0</h4>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="p-3 rounded-4 bg-white border-start border-danger border-5 shadow-sm">
-                            <small class="text-muted fw-bold d-block mb-1" style="font-size:0.7rem;">PENGELUARAN</small>
-                            <h4 class="fw-bold text-danger mb-0" id="dash-keluar">Rp 0</h4>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="p-3 rounded-4 bg-white border-start border-warning border-5 shadow-sm">
-                            <small class="text-muted fw-bold d-block mb-1" style="font-size:0.7rem;">SALDO KASIR</small>
-                            <h4 class="fw-bold text-warning mb-0" id="dash-laci">Rp 0</h4>
-                        </div>
-                    </div>
-                </div>
+                <div class="px-3 mt-4"><h6 class="fw-bold"><i class="fas fa-fire text-danger me-1"></i> Terlaris</h6></div>
+                <div class="best-seller-wrapper px-3" id="bestSellerGrid"></div>
 
-                <div class="row g-4 mb-5">
-                    <div class="col-lg-8">
-                        <div class="bg-white p-4 rounded-5 shadow-sm border h-100">
-                            <h5 class="fw-bold mb-4"><i class="fas fa-fire text-danger me-2"></i>Menu Terlaris Hari Ini</h5>
-                            <div id="dash-top-selling" class="row g-3">
-                                </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4">
-                        <div class="bg-primary text-white p-4 rounded-5 shadow-lg h-100 position-relative overflow-hidden">
-                            <div style="position:relative; z-index: 2;">
-                                <h5 class="fw-bold mb-4">Aksi Cepat</h5>
-                                <button class="btn btn-light w-100 rounded-pill mb-3 py-3 fw-bold text-primary shadow" onclick="switchTab('tab-kasir', document.getElementById('btn-tab-kasir'))">
-                                    <i class="fas fa-cart-plus me-2"></i>BUAT PESANAN KASIR
-                                </button>
-                                <button class="btn btn-outline-light w-100 rounded-pill py-3 fw-bold" data-bs-toggle="modal" data-bs-target="#kasKeluarModal">
-                                    <i class="fas fa-minus-circle me-2"></i>CATAT PENGELUARAN
-                                </button>
-                            </div>
-                            <i class="fas fa-crown position-absolute" style="font-size: 10rem; bottom: -30px; right: -30px; opacity: 0.1;"></i>
-                        </div>
-                    </div>
+                <div class="px-3 mt-4"><h6 class="fw-bold">Kategori</h6></div>
+                <div class="category-wrapper px-3 mb-2" id="catList"></div>
+
+                <div class="container">
+                    <div class="row g-3" id="menuGrid"></div>
                 </div>
             </div>
         </div>
 
-        <div id="tab-kasir" class="tab-pane-custom animate__animated animate__fadeIn" style="display:none;">
-            <div class="container-fluid px-4 pt-5 pt-lg-4">
-                <div class="position-relative mb-4 mx-auto" style="max-width: 800px;">
-                    <i class="fas fa-search position-absolute top-50 translate-middle-y ms-4 text-primary"></i>
-                    <input type="text" id="kasir-search" class="form-control rounded-pill border-0 shadow-lg p-3 ps-5 fw-bold" placeholder="Cari menu Macca..." onkeyup="syncFilter()">
-                </div>
-                
-                <div id="cat-bar" class="d-flex justify-content-center overflow-auto mb-3 pb-2"></div>
-                <div id="sub-cat-container" class="sub-cat-bar animate__animated animate__fadeIn" style="display: none;"></div>
-                <div id="menu-grid" class="row g-3 g-md-4 mb-5 pb-5"></div>
-            </div>
+        <div id="view-orders" style="display: none;">
+            <div class="p-3 bg-white border-bottom text-center"><h5 class="fw-bold mb-0">Pesanan Saya</h5></div>
+            <div class="container mt-3" id="orderHistoryList"></div>
+        </div>
 
-            <div id="floating-cart" class="cart-bar-bottom animate__animated animate__fadeInUp" style="display: none;">
-                <div class="cart-bar-content">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="fw-bold text-primary"><i class="fas fa-shopping-basket me-2 text-warning"></i> <span id="cart-count">0</span> ITEM</span>
-                        <button class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold" onclick="batalSemua()"><i class="fas fa-trash-can me-1"></i> RESET</button>
+        <div id="view-profile" style="display: none;">
+            <div class="p-4 text-center bg-white border-bottom">
+                <div class="position-relative d-inline-block">
+                    <img src="" id="profImg" class="rounded-circle border shadow-sm" style="width:100px; height:100px; object-fit:cover;">
+                    <label for="imgInp" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 border border-white" style="cursor:pointer;"><i class="fas fa-camera fa-xs"></i></label>
+                    <input type="file" id="imgInp" hidden onchange="uploadAvatar(this)">
+                </div>
+                <h5 class="fw-bold mt-3 mb-0" id="profNama">Nama</h5>
+                <p class="text-muted small" id="profEmail">WhatsApp User</p>
+            </div>
+            <div class="container mt-3">
+                <div class="card p-3 border-0 rounded-4 shadow-sm">
+                    <label class="small fw-bold text-muted">Nomor WA</label>
+                    <input type="number" id="upWA" class="form-control border-0 bg-light mb-3" readonly>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="small fw-bold text-muted mb-0">Titik Lokasi (Maps)</label>
+                        <button class="btn btn-sm btn-outline-primary py-0" onclick="getLocation()" style="font-size: 10px;">GPS SAYA</button>
                     </div>
-                    <div id="cart-preview" class="mb-3" style="max-height: 120px; overflow-y: auto;"></div>
-                    <button class="btn-premium btn-blue w-100 shadow-lg" data-bs-toggle="modal" data-bs-target="#checkoutModal" onclick="renderCart()">
-                        <i class="fas fa-money-check-dollar me-2 text-warning"></i> PROSES (Rp <span id="cart-total-bar">0</span>)
-                    </button>
+                    <div id="map"></div>
+                    <input type="hidden" id="upLat">
+                    <input type="hidden" id="upLng">
+
+                    <label class="small fw-bold text-muted">Alamat Lengkap / Patokan</label>
+                    <textarea id="upAlamat" class="form-control border-0 bg-light mb-3" rows="3" placeholder="Nama Jalan, Blok, atau Patokan Rumah"></textarea>
+                    
+                    <button class="btn btn-primary w-100 rounded-pill fw-bold" onclick="saveProfile()">Simpan Profil</button>
+                    <button class="btn btn-link text-danger w-100 mt-2" onclick="handleLogout()">Logout</button>
                 </div>
             </div>
         </div>
-        <!-- Contoh: tab-online yang sudah di-upgrade dengan kolom GPS dan status -->
-        <div id="tab-online" class="tab-pane-custom" style="display:none; padding:20px;">
-    <div class="card shadow-sm border-0" style="border-radius:20px; overflow:hidden;">
-        <div class="card-header bg-white border-0 pb-0">
-            <div class="d-flex justify-content-between align-items-center">
-                <h4 class="fw-bold text-primary mb-0">
-                    <i class="fas fa-shopping-cart me-2 text-warning"></i>PESANAN ONLINE MASUK
-                </h4>
-                <div class="trx-box bg-success">
-                    <i class="fas fa-sync-alt fa-spin"></i> <span class="small">Monitoring Realtime</span>
-                </div>
-            </div>
+
+        <a href="https://wa.me/6282191262682" class="whatsapp-float animate__animated animate__bounceIn" target="_blank"><i class="fab fa-whatsapp"></i></a>
+
+        <div class="cart-bar animate__animated animate__fadeInUp" id="cartBar" onclick="processCheckout()">
+            <div class="d-flex align-items-center"><div class="bg-white text-primary rounded-pill px-3 fw-bold me-2" id="cartQty">0</div><span class="small fw-bold">Checkout Pesanan</span></div>
+            <div id="cartTotal" class="fw-bold">Rp 0</div>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 align-middle">
-                    <thead style="background:#f8f9fc;">
-                        <tr>
-                            <th class="text-primary fw-bold" style="font-size:0.95rem;">WAKTU</th>
-                            <th class="text-primary fw-bold" style="font-size:0.95rem;">PELANGGAN</th>
-                            <th class="text-primary fw-bold" style="font-size:0.95rem;">PESANAN</th>
-                            <th class="text-primary fw-bold" style="font-size:0.95rem;">TOTAL</th>
-                            <th class="text-primary fw-bold" style="font-size:0.95rem;">STATUS</th>
-                            <th class="text-primary fw-bold" style="font-size:0.95rem;">LOKASI GPS</th>
-                            <th class="text-primary fw-bold" style="font-size:0.95rem;">AKSI</th>
-                        </tr>
-                    </thead>
-                    <tbody id="online-orders-body"></tbody>
-                </table>
-            </div>
+
+        <div class="bottom-nav">
+            <button class="nav-item-btn active" id="btn-home" onclick="switchView('home')"><i class="fas fa-home"></i> Beranda</button>
+            <button class="nav-item-btn" id="btn-orders" onclick="switchView('orders')"><i class="fas fa-receipt"></i> Pesanan</button>
+            <button class="nav-item-btn" id="btn-profile" onclick="switchView('profile')"><i class="fas fa-user-circle"></i> Profil</button>
         </div>
     </div>
-</div>
-       <div id="tab-riwayat" class="tab-pane-custom animate__animated animate__fadeIn" style="display:none;">
-            <div class="container px-4 pt-5 pt-lg-4">
-                <div class="bg-white p-4 rounded-4 shadow-sm border">
-                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3">
-                        <h5 class="fw-bold mb-0 text-primary"><i class="fas fa-clock-rotate-left me-2 text-warning"></i>RIWAYAT PENJUALAN</h5>
-                        <div class="d-flex align-items-center gap-2 no-print w-100 w-sm-auto">
-                            <input type="date" id="filter-date-riwayat" class="form-control form-control-sm rounded-pill shadow-sm" style="max-width: 150px;" onchange="loadLaporan()">
-                            <div class="trx-box">
-                                <i class="fas fa-chart-bar"></i> <span>TRX:</span> <span id="total-trx-riwayat">0</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light text-primary">
-                                <tr>
-                                    <th><i class="fas fa-hourglass-start me-1"></i> WAKTU</th>
-                                    <th><i class="fas fa-user me-1"></i> PELANGGAN</th>
-                                    <th><i class="fas fa-tag me-1"></i> LAYANAN & PEMBAYARAN</th>
-                                    <th class="text-end"><i class="fas fa-coins me-1"></i> TOTAL</th>
-                                </tr>
-                            </thead>
-                            <tbody id="laporan-body-riwayat"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div id="tab-laporan" class="tab-pane-custom animate__animated animate__fadeIn" style="display:none;">
-            <div class="container px-4 pt-5 pt-lg-4">
-                <div class="d-flex justify-content-between align-items-center mb-4 no-print">
-                    <h4 class="fw-bold text-primary mb-0"><i class="fas fa-file-invoice-dollar me-2 text-warning"></i>RINGKASAN KEUANGAN</h4>
-                    <button class="btn btn-outline-primary rounded-pill px-3 fw-bold" onclick="window.print()"><i class="fas fa-print me-2"></i>CETAK</button>
-                </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-                <div class="row g-3 mb-4">
-                    <div class="col-md-3">
-                        <div class="p-3 rounded-4 text-white shadow-lg h-100 d-flex flex-column" style="background:var(--blue-gradient)">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <small class="text-white-50 fw-bold">TOTAL OMZET</small>
-                                <i class="fas fa-chart-line opacity-50"></i>
-                            </div>
-                            <h4 id="total-omzet" class="fw-bold mb-0">Rp 0</h4>
-                            <div class="mt-auto pt-2 border-top border-white-25 mt-3">
-                                <small class="d-block opacity-75 fw-bold mb-1" style="font-size: 0.65rem;">PENDAPATAN HARI INI:</small>
-                                <div class="row g-0">
-                                    <div class="col-6 border-end border-white-25 pe-1 text-start">
-                                        <small class="d-block text-white-50" style="font-size: 0.55rem; font-weight: 700;">PENJ. KASIR</small>
-                                        <b id="day-penj-kasir" style="font-size: 0.75rem;">Rp 0</b>
-                                    </div>
-                                    <div class="col-6 ps-1 text-end">
-                                        <small class="d-block text-white-50" style="font-size: 0.55rem; font-weight: 700;">GERAI DEPAN</small>
-                                        <b id="day-gerai-depan" style="font-size: 0.75rem;">Rp 0</b>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="p-3 rounded-4 shadow-lg text-white h-100 d-flex flex-column" style="background: #e74c3c;">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <small class="text-white-50 fw-bold">TOTAL PENGELUARAN</small>
-                                <i class="fas fa-arrow-right-from-bracket opacity-50"></i>
-                            </div>
-                            <h4 id="total-keluar" class="fw-bold mb-0">Rp 0</h4>
-                            <div class="mt-auto pt-2 border-top border-white-25 mt-3">
-                                <small class="d-block opacity-75 fw-bold mb-1" style="font-size: 0.65rem;">PENGELUARAN HARI INI:</small>
-                                <div class="row g-0 text-center">
-                                    <div class="col-4 border-end border-white-25 px-1 text-start">
-                                        <small class="d-block text-white-50" style="font-size: 0.55rem; font-weight: 700;">OPS</small>
-                                        <b id="day-keluar-ops" style="font-size: 0.7rem;">Rp 0</b>
-                                    </div>
-                                    <div class="col-4 border-end border-white-25 px-1">
-                                        <small class="d-block text-white-50" style="font-size: 0.55rem; font-weight: 700;">DAPUR</small>
-                                        <b id="day-keluar-dapur" style="font-size: 0.7rem;">Rp 0</b>
-                                    </div>
-                                    <div class="col-4 ps-1 text-end">
-                                        <small class="d-block text-white-50" style="font-size: 0.55rem; font-weight: 700;">KASBON</small>
-                                        <b id="day-keluar-kasbon" style="font-size: 0.7rem;">Rp 0</b>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="p-3 rounded-4 shadow-lg text-white h-100" style="background: var(--green-gradient);">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <small class="text-white-50 fw-bold">TOTAL SALDO KASIR</small>
-                                <i class="fas fa-cash-register opacity-50"></i>
-                            </div>
-                            <h4 id="total-laci" class="fw-bold mb-0">Rp 0</h4>
-                            <div class="mt-2 pt-2 border-top border-white-25">
-                                <small class="d-block opacity-75 fw-bold" style="font-size: 0.65rem;">SALDO KASIR HARI INI:</small>
-                                <b id="today-laci" style="font-size: 0.9rem;">Rp 0</b>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="p-3 rounded-4 shadow-lg text-white h-100" style="background: var(--purple-gradient);">
-                            <div class="d-flex justify-content-between align-items-start mb-1">
-                                <small class="text-white-50 fw-bold">TOTAL SALDO BANK</small>
-                                <i class="fas fa-building-columns opacity-50"></i>
-                            </div>
-                            <h4 id="total-online-combined" class="fw-bold mb-2">Rp 0</h4>
-                            <div class="row g-0 py-2 border-top border-white-25">
-                                <div class="col-6 border-end border-white-25 px-1">
-                                    <small class="d-block text-white-50 fw-bold" style="font-size: 0.6rem;">TOTAL BNI</small>
-                                    <span id="total-bni" style="font-size: 0.8rem; font-weight: 700;">Rp 0</span>
-                                </div>
-                                <div class="col-6 px-1 text-end">
-                                    <small class="d-block text-white-50 fw-bold" style="font-size: 0.6rem;">TOTAL BRI</small>
-                                    <span id="total-bri" style="font-size: 0.8rem; font-weight: 700;">Rp 0</span>
-                                </div>
-                            </div>
-                            <div class="mt-2 pt-2 border-top border-white-25">
-                                <small class="d-block opacity-75 fw-bold mb-1" style="font-size: 0.65rem;">SALDO BANK HARI INI:</small>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div style="font-size: 0.75rem;"><span class="opacity-75">BNI:</span> <b id="today-bni">Rp 0</b></div>
-                                    <div style="font-size: 0.75rem;"><span class="opacity-75">BRI:</span> <b id="today-bri">Rp 0</b></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, get, onValue, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-                <div class="row g-2 mb-4 no-print">
-                    <div class="col-6">
-                        <button class="btn btn-success w-100 rounded-4 py-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#kasMasukModal">
-                            <i class="fas fa-circle-plus me-2"></i>KAS MASUK
-                        </button>
-                    </div>
-                    <div class="col-6">
-                        <button class="btn btn-danger w-100 rounded-4 py-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#kasKeluarModal">
-                            <i class="fas fa-circle-minus me-2"></i>KAS KELUAR
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-white p-4 rounded-4 shadow-sm border mt-4">
-                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-                        <h5 class="fw-bold mb-0 text-primary"><i class="fas fa-money-bill-transfer me-2 text-warning"></i>ARUS KAS (DETAIL AKTIVITAS)</h5>
-                        <div class="d-flex flex-wrap gap-2">
-                            <div class="summary-btn">GRAB <span class="count-badge" id="count-grab">0</span></div>
-                            <div class="summary-btn">DINE IN <span class="count-badge" id="count-dinein">0</span></div>
-                            <div class="summary-btn">ANTAR <span class="count-badge" id="count-antar">0</span></div>
-                            <div class="summary-btn">TAKE AWAY <span class="count-badge" id="count-takeaway">0</span></div>
-                        </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-sm align-middle">
-                            <thead class="table-light small text-muted">
-                                <tr>
-                                    <th>WAKTU</th>
-                                    <th>AKTIVITAS</th>
-                                    <th>LOKASI/TIPE</th>
-                                    <th class="text-end">NOMINAL</th>
-                                </tr>
-                            </thead>
-                            <tbody id="arus-kas-body" style="font-size: 0.9rem;"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="kasMasukModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 rounded-5 shadow-lg">
-            <div class="modal-header border-0 bg-success text-white p-4">
-                <h5 class="fw-bold mb-0"><i class="fas fa-hand-holding-dollar me-2"></i>KAS MASUK</h5>
-                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="mb-3 text-center">
-                    <label class="small fw-bold text-muted d-block mb-2">SUMBER KAS MASUK</label>
-                    <div class="btn-group w-100 shadow-sm">
-                        <input type="radio" class="btn-check" name="masuk-type" id="m-gerai" value="Gerai Depan" checked>
-                        <label class="btn btn-outline-success" for="m-gerai">GERAI DEPAN</label>
-                        <input type="radio" class="btn-check" name="masuk-type" id="m-grab" value="Grab">
-                        <label class="btn btn-outline-success" for="m-grab">GRAB</label>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label class="small fw-bold text-muted">JUMLAH (Rp)</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0 text-success fw-bold">Rp</span>
-                        <input type="text" id="masuk-amount" class="form-control form-control-lg fw-bold border-start-0 ps-0" placeholder="0" oninput="formatRupiahInput(this)">
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label class="small fw-bold text-muted">KETERANGAN</label>
-                    <textarea id="masuk-desc" class="form-control rounded-3" rows="2" placeholder="Contoh: Modal Awal, Penambahan Saldo..."></textarea>
-                </div>
-                <button class="btn-premium btn-blue w-100 py-3" onclick="submitKasMasuk()">
-                    <i class="fas fa-floppy-disk me-2"></i>SIMPAN DATA MASUK
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="kasKeluarModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 rounded-5 shadow-lg">
-            <div class="modal-header border-0 bg-danger text-white p-4">
-                <h5 class="fw-bold mb-0"><i class="fas fa-hand-holding-dollar me-2"></i>KAS KELUAR</h5>
-                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="mb-3 text-center">
-                    <label class="small fw-bold text-muted d-block mb-2">KATEGORI PENGELUARAN</label>
-                    <div class="btn-group w-100 shadow-sm">
-                        <input type="radio" class="btn-check" name="keluar-type" id="k-ops" value="Operasional" checked>
-                        <label class="btn btn-outline-danger" for="k-ops">OPS</label>
-                        <input type="radio" class="btn-check" name="keluar-type" id="k-dapur" value="Dapur">
-                        <label class="btn btn-outline-danger" for="k-dapur">DAPUR</label>
-                        <input type="radio" class="btn-check" name="keluar-type" id="k-kasbon" value="Kasbon">
-                        <label class="btn btn-outline-danger" for="k-kasbon">KASBON</label>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label class="small fw-bold text-muted">JUMLAH (Rp)</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0 text-danger fw-bold">Rp</span>
-                        <input type="text" id="keluar-amount" class="form-control form-control-lg fw-bold border-start-0 ps-0" placeholder="0" oninput="formatRupiahInput(this)">
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label class="small fw-bold text-muted">KETERANGAN</label>
-                    <textarea id="keluar-desc" class="form-control rounded-3" rows="2" placeholder="Contoh: Beli Es Batu, Bayar Kurir..."></textarea>
-                </div>
-                <button class="btn-premium btn-blue w-100 py-3" onclick="submitKasKeluar()">
-                    <i class="fas fa-floppy-disk me-2"></i>SIMPAN DATA PENGELUARAN
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="checkoutModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 rounded-5 shadow-lg overflow-hidden">
-            <div class="modal-header border-0 bg-primary text-white p-3">
-                <h6 class="fw-bold mb-0"><i class="fas fa-cash-register me-2"></i>PEMBAYARAN PESANAN</h6>
-                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body bg-light p-3">
-                <div class="row g-3">
-                    <div class="col-md-5">
-                        <div class="bg-white p-3 rounded-4 shadow-sm h-100 d-flex flex-column">
-                            <label class="small fw-bold mb-2 text-primary"><i class="fas fa-list-check me-2"></i>ITEM PESANAN</label>
-                            <div id="checkout-list" class="flex-grow-1" style="max-height: 250px; overflow-y: auto;"></div>
-                            <div class="p-3 bg-light rounded-4 text-center mt-3 border">
-                                <small class="fw-bold opacity-50">TOTAL BAYAR</small>
-                                <h3 class="fw-bold text-primary mb-0" id="checkout-total-text">Rp 0</h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-7">
-                        <div class="bg-white p-3 rounded-4 shadow-sm mb-3">
-                            <label class="small fw-bold mb-2 text-primary"><i class="fas fa-truck-fast me-2"></i>TIPE LAYANAN</label>
-                            <div class="d-flex flex-wrap gap-2 mb-3">
-                                <button class="btn-service active" id="btn-dinein" onclick="setService('Dine In')"><i class="fas fa-chair"></i>DINE IN</button>
-                                <button class="btn-service" id="btn-takeaway" onclick="setService('Take Away')"><i class="fas fa-bag-shopping"></i>TAKE AWAY</button>
-                                <button class="btn-service" id="btn-antar" onclick="setService('Antar')"><i class="fas fa-motorcycle"></i>ANTAR</button>
-                            </div>
-                            <div class="mb-3">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-user text-primary"></i></span>
-                                    <input type="text" id="customer-name" class="form-control border-start-0 fw-bold" placeholder="Nama Pelanggan...">
-                                </div>
-                            </div>
-                            <div id="antar-fields" style="display: none;" class="mb-3 p-3 bg-light rounded-3 border">
-                                <input type="text" id="custAddress" class="form-control form-control-sm mb-2" placeholder="Alamat Pengiriman...">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">Ongkir Rp</span>
-                                    <input type="text" id="shippingFee" class="form-control" value="5.000" oninput="handleShippingInput(this)">
-                                </div>
-                            </div>
-                            <label class="small fw-bold mb-2 text-primary"><i class="fas fa-credit-card me-2"></i>METODE PEMBAYARAN</label>
-                            <div class="d-flex gap-2 mb-3">
-                                <button class="btn-pay-method active" id="pay-tunai" onclick="setPaymentMethod('TUNAI')"><i class="fas fa-money-bill-wave"></i>TUNAI</button>
-                                <button class="btn-pay-method" id="pay-online" onclick="setPaymentMethod('ONLINE')"><i class="fas fa-globe"></i>ONLINE</button>
-                            </div>
-                            <div id="online-section" class="mb-3" style="display: none;">
-                                <div class="d-flex gap-2">
-                                    <button class="btn-service" id="pay-qris" onclick="setOnlineMethod('BNI')">QRIS (BNI)</button>
-                                    <button class="btn-service" id="pay-tf" onclick="setOnlineMethod('BRI')">TF (BRI)</button>
-                                </div>
-                            </div>
-                            <div id="cash-section">
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text bg-white border-end-0 text-success"><i class="fas fa-wallet"></i></span>
-                                    <input type="text" id="cash-amount" class="form-control border-start-0 fw-bold text-success" placeholder="Uang Bayar..." oninput="handlePaymentInput(this)">
-                                </div>
-                                <div class="mt-2 d-flex justify-content-between">
-                                    <small class="text-muted">Kembalian:</small>
-                                    <b id="change-amount" class="text-primary">Rp 0</b>
-                                </div>
-                            </div>
-                        </div>
-                        <button class="btn-premium btn-gold w-100 py-3 shadow" onclick="submitAndPrint()">
-                            <i class="fas fa-print me-2"></i>SIMPAN & CETAK STRUK
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="adminModal" tabindex="-1" data-bs-focus="false">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content border-0 rounded-5 shadow-lg overflow-hidden">
-            <div class="modal-header border-0 bg-primary p-4 text-white">
-                <h5 class="fw-bold mb-0"><i class="fas fa-gears me-2"></i>MANAJEMEN DATABASE MENU</h5>
-                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4 bg-light">
-                <ul class="nav nav-pills mb-4 gap-2">
-                    <li class="nav-item"><button class="nav-link active rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#adm-list"><i class="fas fa-table-list me-2"></i>Daftar Menu</button></li>
-                    <li class="nav-item"><button class="nav-link rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#adm-add" id="tab-tambah-menu"><i class="fas fa-plus-circle me-2"></i>Tambah/Edit Menu</button></li>
-                </ul>
-                <div class="tab-content">
-                    <div class="tab-pane fade show active" id="adm-list">
-                        <div class="input-group mb-4 shadow-sm rounded-pill overflow-hidden">
-                            <span class="input-group-text bg-white border-0"><i class="fas fa-magnifying-glass"></i></span>
-                            <input type="text" id="admin-search" class="form-control border-0" placeholder="Cari menu di database..." onkeyup="renderAdminList()">
-                        </div>
-                        <div id="admin-list-container" class="row g-3"></div>
-                    </div>
-                    <div class="tab-pane fade" id="adm-add">
-                        <div class="row g-3 p-4 bg-white rounded-4 shadow-sm border">
-                            <input type="hidden" id="m_id_edit"> 
-                            <div class="col-md-4">
-                                <label class="small fw-bold mb-1">NAMA MENU</label>
-                                <input type="text" id="m_name" class="form-control rounded-3">
-                            </div>
-                            <div class="col-md-2">
-                                <label class="small fw-bold mb-1">HARGA</label>
-                                <input type="number" id="m_price" class="form-control rounded-3">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="small fw-bold mb-1">KATEGORI INDUK</label>
-                                <div class="input-group">
-                                    <select id="m_cat_select" class="form-select rounded-start-3" onchange="updateSubCategoryInput()">
-                                        <option value="MAKANAN">MAKANAN</option>
-                                        <option value="MINUMAN">MINUMAN</option>
-                                        <option value="SAYUR">SAYUR</option>
-                                        <option value="LAINNYA">LAINNYA</option>
-                                    </select>
-                                    <button class="btn btn-warning text-white" type="button" onclick="inputKategoriManual()"><i class="fas fa-plus"></i></button>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="small fw-bold mb-1">SUB-KATEGORI (Opsional)</label>
-                                <div class="input-group">
-                                    <input type="text" id="m_sub_cat" class="form-control" placeholder="Contoh: AYAM, ES, dsb">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="showSubSuggest()"><i class="fas fa-list"></i></button>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <label class="small fw-bold mb-1">UNGGAH GAMBAR (Kosongkan jika tidak ganti)</label>
-                                <input type="file" id="m_file" class="form-control rounded-3" accept="image/*">
-                            </div>
-                            <div class="col-12 text-end mt-4">
-                                <button class="btn btn-secondary me-2 px-4 py-2 rounded-pill fw-bold" onclick="resetFormMenu()" id="btn-batal-edit" style="display:none;">BATAL</button>
-                                <button class="btn btn-primary px-5 py-2 rounded-pill fw-bold" onclick="simpanMenu()" id="btn-simpan-menu"><i class="fas fa-cloud-arrow-up me-2"></i>SIMPAN DATA</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-    </div>
-</div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-   import { 
-    getDatabase, 
-    ref, 
-    push,           // penting untuk create baru
-    set,
-    update,
-    remove,
-    onValue,
-    get,
-    child 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyBWz63o_JFK3Ucvb7IuXI1cNO8SXMHvsEA",
-        authDomain: "kasirmaccanew.firebaseapp.com",
-        databaseURL: "https://kasirmaccanew-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "kasirmaccanew"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
-
-    let masterMenu = [], cart = [], activeFilter = "Semua", activeSubFilter = "Semua", currentTotal = 0, serviceType = "Dine In", paymentType = "TUNAI", onlineMethod = "";
-    let menuSalesStats = {};
-    let globalTransaksi = {};
-
-    const btnToTop = document.getElementById("backToTop");
-    window.onscroll = function() {
-        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-            btnToTop.style.display = "flex";
-            btnToTop.classList.add("animate__fadeInUp");
-        } else {
-            btnToTop.style.display = "none";
-        }
-    };
-    window.scrollToTop = () => { window.scrollTo({ top: 0, behavior: 'smooth' }); };
-
-    window.toggleSidebar = () => {
-        document.getElementById('sidebar').classList.toggle('active');
-        document.getElementById('overlay').classList.toggle('active');
-    };
-    
-    window.switchTab = (tabId, btn) => {
-        document.querySelectorAll('.tab-pane-custom').forEach(t => t.style.display = 'none');
-        document.getElementById(tabId).style.display = 'block';
-        document.querySelectorAll('.nav-sidebar .nav-link').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        if(tabId === 'tab-laporan' || tabId === 'tab-riwayat' || tabId === 'tab-dashboard') loadLaporan();
-        if(window.innerWidth < 992) toggleSidebar();
-    };
-
-    window.directLogin = (user) => {
-        document.getElementById('user-display').innerText = user;
-        // Dashboard Info
-        document.getElementById('dash-user-name').innerText = user.replace('KASIR ', '');
-        document.getElementById('dash-date-now').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'block';
-        document.getElementById('filter-date-riwayat').valueAsDate = new Date();
-        
-        // Langsung buka Dashboard saat login
-        switchTab('tab-dashboard', document.getElementById('btn-tab-dashboard'));
-        syncData();
-    };
-
-    function syncData() {
-        onValue(ref(db, 'transaksi'), s => {
-            const data = s.val();
-            globalTransaksi = data || {};
-            menuSalesStats = {};
-            if(data) {
-                Object.values(data).forEach(trx => {
-                    if(trx.type === 'PENJUALAN' && trx.items) {
-                        trx.items.forEach(it => {
-                            menuSalesStats[it.n] = (menuSalesStats[it.n] || 0) + it.qty;
-                        });
-                    }
-                });
-            }
-            onValue(ref(db, 'master_menu'), s => { 
-                masterMenu = s.val() ? Object.keys(s.val()).map(id => ({...s.val()[id], id})) : []; 
-                renderCategoryTabs();
-                syncFilter(); 
-                renderAdminList(); 
-                updateCategorySelect();
-            });
-        });
-    }
-
-    function updateCategorySelect() {
-        const sel = document.getElementById('m_cat_select');
-        const currentVal = sel.value;
-        const defaultCats = ['MAKANAN', 'MINUMAN', 'SAYUR', 'LAINNYA'];
-        const existingCats = [...new Set(masterMenu.map(m => m.category.split(' > ')[0]))];
-        const allCats = [...new Set([...defaultCats, ...existingCats])];
-        sel.innerHTML = allCats.map(c => `<option value="${c}">${c}</option>`).join('');
-        if (allCats.includes(currentVal)) sel.value = currentVal;
-    }
-
-    window.renderCategoryTabs = () => {
-        const urutanManual = ['Semua', 'PAKET HEMAT', 'MAKANAN', 'MINUMAN', 'SAYUR', 'LAINNYA'];
-        let kategoriLain = [...new Set(masterMenu.map(m => m.category.split(' > ')[0]))].filter(c => !urutanManual.includes(c));
-        let finalCategories = [...urutanManual, ...kategoriLain];
-        const icons = { 'Semua':'fa-list-ul', 'PAKET HEMAT':'fa-star', 'MAKANAN':'fa-utensils', 'MINUMAN':'fa-glass-water', 'SAYUR':'fa-leaf', 'LAINNYA':'fa-ellipsis' };
-        document.getElementById('cat-bar').innerHTML = finalCategories.map(c => `
-            <button class="category-btn ${activeFilter === c ? 'active' : ''}" onclick="setFilter('${c}')">
-                <i class="fas ${icons[c] || 'fa-tag'} me-2"></i>${c}
-            </button>`).join('');
-        renderSubCategoryBar();
-    };
-
-    window.renderSubCategoryBar = () => {
-        const subBar = document.getElementById('sub-cat-container');
-        if (activeFilter === 'Semua') { subBar.style.display = 'none'; return; }
-        let subCats = [...new Set(masterMenu.filter(m => m.category.startsWith(activeFilter + ' > ')).map(m => m.category.split(' > ')[1]))];
-        if (subCats.length > 0) {
-            subBar.style.display = 'flex';
-            subBar.innerHTML = `<button class="sub-btn ${activeSubFilter === 'Semua' ? 'active' : ''}" onclick="setSubFilter('Semua')">SEMUA ${activeFilter}</button>` + 
-                subCats.map(sc => `<button class="sub-btn ${activeSubFilter === sc ? 'active' : ''}" onclick="setSubFilter('${sc}')">${sc}</button>`).join('');
-        } else { subBar.style.display = 'none'; }
-    };
-
-    window.setFilter = (cat) => { activeFilter = cat; activeSubFilter = "Semua"; renderCategoryTabs(); syncFilter(); };
-    window.setSubFilter = (sub) => { activeSubFilter = sub; renderSubCategoryBar(); syncFilter(); }
-    
-    window.syncFilter = () => {
-        const q = document.getElementById('kasir-search').value.toLowerCase();
-        let filtered = masterMenu.filter(m => {
-            const [induk, sub] = m.category.split(' > ');
-            const matchInduk = (activeFilter === 'Semua' || induk === activeFilter);
-            const matchSub = (activeSubFilter === 'Semua' || sub === activeSubFilter);
-            const matchSearch = m.name.toLowerCase().includes(q);
-            return matchInduk && matchSub && matchSearch;
-        });
-        if(activeFilter === 'Semua' && q === '') { filtered.sort((a, b) => (menuSalesStats[b.name] || 0) - (menuSalesStats[a.name] || 0)); }
-        const top3Best = Object.keys(menuSalesStats).sort((a,b) => menuSalesStats[b]-menuSalesStats[a]).slice(0, 5);
-        document.getElementById('menu-grid').innerHTML = filtered.map(m => {
-            const isBest = top3Best.includes(m.name) && (menuSalesStats[m.name] > 0);
-            return `
-            <div class="col-6 col-md-4 col-xl-2">
-                <div class="card card-menu ${m.status==='Habis'?'status-habis':''}" onclick="${m.status==='Habis'?'':'addToCart(\''+m.name+'\','+m.price+')'}">
-                    ${isBest ? '<div class="best-seller-badge"><i class="fas fa-fire me-1"></i>BEST SELLER</div>' : ''}
-                    <div class="menu-img-container">${m.status==='Habis'?'<div class="habis-label">HABIS</div>':''}<img src="${m.image || 'https://via.placeholder.com/150'}" class="menu-img"></div>
-                    <div class="p-2 text-center">
-                        <div class="fw-bold" style="font-size:0.75rem; height:35px; overflow:hidden;">${m.name}</div>
-                        <span class="price-badge" style="font-size:0.7rem;">Rp ${m.price.toLocaleString()}</span>
-                    </div>
-                </div>
-            </div>`}).join('');
-    };
-
-    window.showSubSuggest = () => {
-        const induk = document.getElementById('m_cat_select').value;
-        const subs = [...new Set(masterMenu.filter(m => m.category.startsWith(induk)).map(m => m.category.split(' > ')[1]))].filter(s => s);
-        if(subs.length === 0) return Toast.fire({icon:'info', title: 'Belum ada sub-kategori di induk ini'});
-        Swal.fire({ title: 'Pilih Sub-Kategori', input: 'select', inputOptions: Object.fromEntries(subs.map(s => [s, s])), showCancelButton: true })
-        .then(res => { if(res.isConfirmed) document.getElementById('m_sub_cat').value = res.value; });
-    }
-
-    window.addToCart = (n, p) => { 
-        const it = cart.find(i => i.n === n);
-        it ? it.qty++ : cart.push({n, p, qty: 1});
-        renderCart(); Toast.fire({icon:'success', title: n + ' ditambahkan'}); 
-    };
-    
-    window.renderCart = () => {
-        const foodTotal = cart.reduce((a, b) => a + (b.p * b.qty), 0);
-        const shipRaw = document.getElementById('shippingFee').value.replace(/\./g, '') || 0;
-        const totalShip = (serviceType === 'Antar') ? parseInt(shipRaw) : 0;
-        currentTotal = foodTotal + totalShip;
-        document.getElementById('floating-cart').style.display = cart.length > 0 ? 'block' : 'none';
-        document.getElementById('cart-count').innerText = cart.reduce((acc, i) => acc + i.qty, 0);
-        document.getElementById('cart-total-bar').innerText = currentTotal.toLocaleString();
-        document.getElementById('checkout-total-text').innerText = "Rp " + currentTotal.toLocaleString();
-        if(cart.length > 0) {
-            document.getElementById('cart-preview').innerHTML = cart.slice(-3).map(it => `<div class="p-2 mb-1 bg-white rounded shadow-sm border-start border-primary border-4 d-flex justify-content-between"><span class="small fw-bold">${it.n}</span><span class="badge bg-primary rounded-pill">${it.qty}x</span></div>`).join('');
-            document.getElementById('checkout-list').innerHTML = cart.map((it, i) => `<div class="d-flex justify-content-between p-2 border-bottom"><div><b>${it.n}</b><br><small>Rp ${(it.p * it.qty).toLocaleString()}</small></div><div class="d-flex align-items-center gap-2"><button class="btn btn-sm btn-light border" onclick="updateQty(${i}, -1)"><i class="fas fa-minus fa-xs"></i></button><b>${it.qty}</b><button class="btn btn-sm btn-light border" onclick="updateQty(${i}, 1)"><i class="fas fa-plus fa-xs"></i></button></div></div>`).join('');
-        }
-        calcChange();
-    };
-
-    window.updateQty = (i, ch) => { cart[i].qty += ch; if(cart[i].qty <= 0) cart.splice(i, 1); renderCart(); };
-    window.batalSemua = () => { cart = []; renderCart(); };
-    window.setService = (t) => { serviceType = t; ['dinein','takeaway','antar'].forEach(id => { const el = document.getElementById('btn-'+id); if(el) el.classList.remove('active'); }); document.getElementById('btn-'+t.toLowerCase().replace(' ','')).classList.add('active'); document.getElementById('antar-fields').style.display = (t === 'Antar') ? 'block' : 'none'; renderCart(); };
-    window.setPaymentMethod = (m) => { paymentType = m; document.getElementById('pay-tunai').classList.toggle('active', m === 'TUNAI'); document.getElementById('pay-online').classList.toggle('active', m === 'ONLINE'); document.getElementById('online-section').style.display = m === 'ONLINE' ? 'block' : 'none'; document.getElementById('cash-section').style.display = m === 'ONLINE' ? 'none' : 'block'; };
-    window.setOnlineMethod = (b) => { onlineMethod = b; document.getElementById('pay-qris').classList.toggle('active', b === 'BNI'); document.getElementById('pay-tf').classList.toggle('active', b === 'BRI'); };
-    window.formatRupiahInput = (el) => { el.value = el.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, "."); };
-    window.handleShippingInput = (el) => { formatRupiahInput(el); renderCart(); };
-    window.handlePaymentInput = (el) => { formatRupiahInput(el); calcChange(); };
-    function calcChange() { const cashRaw = document.getElementById('cash-amount').value.replace(/\./g, '') || 0; const change = parseInt(cashRaw) - currentTotal; document.getElementById('change-amount').innerText = "Rp " + (change >= 0 ? change.toLocaleString() : 0); }
-
-       window.submitKasMasuk = async () => {
-        const amt = document.getElementById('masuk-amount').value.replace(/\./g, '');
-        const desc = document.getElementById('masuk-desc').value;
-        const cat = document.querySelector('input[name="masuk-type"]:checked').value;
-        if(!amt || !desc) return Toast.fire({icon: 'error', title: 'Data tidak lengkap'});
-        const dataPayload = { type: 'KAS_MASUK', category: cat, amount: parseInt(amt), description: desc, petugas: document.getElementById('user-display').innerText, time: new Date().toISOString() };
-        if(cat === 'Grab') { dataPayload.method = 'ONLINE'; dataPayload.bank = 'BRI'; }
-        await push(ref(db, 'transaksi'), dataPayload);
-        bootstrap.Modal.getInstance(document.getElementById('kasMasukModal')).hide();
-        document.getElementById('masuk-amount').value = ''; document.getElementById('masuk-desc').value = ''; loadLaporan();
-    };
-
-    window.submitKasKeluar = async () => {
-        const amt = document.getElementById('keluar-amount').value.replace(/\./g, '');
-        const desc = document.getElementById('keluar-desc').value;
-        const cat = document.querySelector('input[name="keluar-type"]:checked').value;
-        if(!amt || !desc) return Toast.fire({icon: 'error', title: 'Data tidak lengkap'});
-        await push(ref(db, 'transaksi'), { type: 'KAS_KELUAR', category: cat, amount: parseInt(amt), description: desc, petugas: document.getElementById('user-display').innerText, time: new Date().toISOString() });
-        bootstrap.Modal.getInstance(document.getElementById('kasKeluarModal')).hide();
-        document.getElementById('keluar-amount').value = ''; document.getElementById('keluar-desc').value = ''; loadLaporan();
-    };
-
-    window.showDetailStruk = (id) => {
-        const trx = globalTransaksi[id];
-        if(!trx || trx.type !== 'PENJUALAN') return;
-        let itemsHtml = trx.items.map(it => `<div class="d-flex justify-content-between mb-1"><span>${it.qty}x ${it.n}</span><span>${(it.p * it.qty).toLocaleString()}</span></div>`).join('');
-        const tgl = new Date(trx.time).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
-        Swal.fire({
-            title: '<i class="fas fa-receipt me-2"></i>DETAIL TRANSAKSI',
-            html: `
-                <div class="receipt-popup">
-                    <div class="text-center mb-3">
-                        <h5 class="fw-bold mb-0">LESEHAN MACCA</h5>
-                        <small>Riwayat Penjualan Kasir</small>
-                    </div>
-                    <div class="receipt-line"></div>
-                    <div class="small mb-2">
-                        <div><b>Waktu :</b> ${tgl}</div>
-                        <div><b>Nama  :</b> ${trx.name}</div>
-                        <div><b>Kasir :</b> ${trx.petugas}</div>
-                    </div>
-                    <div class="receipt-line"></div>
-                    <div class="mb-3">${itemsHtml}</div>
-                    <div class="receipt-line"></div>
-                    <div class="d-flex justify-content-between fw-bold"><span>TOTAL</span><span>Rp ${trx.total.toLocaleString()}</span></div>
-                    <div class="mt-2 small text-muted"><span>Layanan: ${trx.service}</span><br><span>Pembayaran: ${trx.method} ${trx.bank || ''}</span></div>
-                </div>`,
-            confirmButtonText: 'TUTUP', confirmButtonColor: '#004aad', showCloseButton: true, customClass: { popup: 'rounded-5' }
-        });
-    };
-
-    window.loadLaporan = () => {
-        const fDate = document.getElementById('filter-date-riwayat').value;
-        const todayStr = new Date().toISOString().split('T')[0];
-        onValue(ref(db, 'transaksi'), s => {
-            let totOmzet = 0, totKeluar = 0, totLaci = 0, totBNI = 0, totBRI = 0;
-            let dayOmzet = 0, dayKeluar = 0, dayLaci = 0, dayBNI = 0, dayBRI = 0;
-            let dPenjKasir = 0, dGeraiDepan = 0, dK_Ops = 0, dK_Dapur = 0, dK_Kasbon = 0;
-            let h = '', arusHtml = '', tCount = 0, cGrab = 0, cDinein = 0, cAntar = 0, cTakeaway = 0;
-            const data = s.val();
-            if(data) {
-                Object.keys(data).reverse().forEach(id => {
-                    const x = data[id];
-                    const itemDate = x.time.split('T')[0];
-                    const isToday = (itemDate === todayStr);
-                    if(x.type === 'PENJUALAN') {
-                        totOmzet += x.total;
-                        if(x.method === 'TUNAI') totLaci += x.total; else { if(x.bank === 'BNI') totBNI += x.total; else if(x.bank === 'BRI') totBRI += x.total; }
-                        if(isToday) { dayOmzet += x.total; dPenjKasir += x.total; if(x.method === 'TUNAI') dayLaci += x.total; else { if(x.bank === 'BNI') dayBNI += x.total; else if(x.bank === 'BRI') dayBRI += x.total; } }
-                        if(!fDate || itemDate === fDate) {
-                            tCount++; if(x.service === 'Dine In') cDinein++; else if(x.service === 'Antar') cAntar++; else if(x.service === 'Take Away') cTakeaway++;
-                            let bCls = (x.service === 'Antar' ? 'badge-antar' : (x.service === 'Take Away' ? 'badge-takeaway' : 'badge-dinein'));
-                            arusHtml += `<tr><td>${new Date(x.time).toLocaleTimeString('id-ID')}</td><td><b class="text-primary">PENJUALAN</b><br><small>${x.name}</small></td><td><span class="badge ${bCls} rounded-pill">${x.service.toUpperCase()}</span></td><td class="text-end fw-bold text-success">+Rp ${x.total.toLocaleString()}</td></tr>`;
-                            h += `<tr class="row-clickable" onclick="showDetailStruk('${id}')"><td>${new Date(x.time).toLocaleTimeString('id-ID')}</td><td><b>${x.name}</b></td><td><span class="badge-method ${bCls}">${x.service}</span> <span class="badge-method bg-success text-white">${x.method}</span></td><td class="text-end fw-bold text-primary">Rp ${x.total.toLocaleString()}</td></tr>`;
-                        }
-                    } else if(x.type === 'KAS_KELUAR') {
-                        totKeluar += x.amount; totLaci -= x.amount;
-                        if(isToday) { dayKeluar += x.amount; dayLaci -= x.amount; if(x.category === 'Operasional') dK_Ops += x.amount; else if(x.category === 'Dapur') dK_Dapur += x.amount; else if(x.category === 'Kasbon') dK_Kasbon += x.amount; }
-                        if(!fDate || itemDate === fDate) {
-                            let bK = x.category === 'Operasional' ? 'badge-ops' : (x.category === 'Dapur' ? 'badge-dinein' : 'badge-lain');
-                            arusHtml += `<tr><td>${new Date(x.time).toLocaleTimeString('id-ID')}</td><td><b class="text-danger">PENGELUARAN</b><br><small>${x.description}</small></td><td><span class="badge ${bK} rounded-pill">${x.category.toUpperCase()}</span></td><td class="text-end fw-bold text-danger">-Rp ${x.amount.toLocaleString()}</td></tr>`;
-                        }
-                    } else if(x.type === 'KAS_MASUK') {
-                        if(x.category === 'Grab') { totBRI += x.amount; totOmzet += x.amount; if(isToday) { dayBRI += x.amount; dayOmzet += x.amount; } }
-                        else if(x.category === 'Gerai Depan' || x.category === 'Penjualan Kasir') { totLaci += x.amount; totOmzet += x.amount; if(isToday) { dayLaci += x.amount; dayOmzet += x.amount; } }
-                        else { totLaci += x.amount; if(isToday) dayLaci += x.amount; }
-                        if(isToday) { if(x.category === 'Penjualan Kasir') dPenjKasir += x.amount; else if(x.category === 'Gerai Depan') dGeraiDepan += x.amount; }
-                        if(!fDate || itemDate === fDate) {
-                            if(x.category === 'Grab') { cGrab++; arusHtml += `<tr><td>${new Date(x.time).toLocaleTimeString('id-ID')}</td><td><b class="text-primary">PENJUALAN GRAB</b><br><small>${x.description}</small></td><td><span class="badge badge-grab rounded-pill">BRI</span></td><td class="text-end fw-bold text-primary">+Rp ${x.amount.toLocaleString()}</td></tr>`; }
-                            else { let clr = (x.category === 'Gerai Depan' || x.category === 'Penjualan Kasir') ? 'text-primary' : 'text-success'; arusHtml += `<tr><td>${new Date(x.time).toLocaleTimeString('id-ID')}</td><td><b class="${clr}">${x.category.toUpperCase()}</b><br><small>${x.description}</small></td><td><span class="badge badge-masuk rounded-pill">${x.category.toUpperCase()}</span></td><td class="text-end fw-bold ${clr}">+Rp ${x.amount.toLocaleString()}</td></tr>`; }
-                        }
-                    }
-                });
-            }
-            // Update UI Laporan
-            document.getElementById('total-omzet').innerText = "Rp " + totOmzet.toLocaleString();
-            document.getElementById('total-keluar').innerText = "Rp " + totKeluar.toLocaleString();
-            document.getElementById('total-laci').innerText = "Rp " + totLaci.toLocaleString();
-            document.getElementById('total-online-combined').innerText = "Rp " + (totBNI + totBRI).toLocaleString();
-            document.getElementById('total-bni').innerText = "Rp " + totBNI.toLocaleString();
-            document.getElementById('total-bri').innerText = "Rp " + totBRI.toLocaleString();
-            document.getElementById('day-penj-kasir').innerText = "Rp " + dPenjKasir.toLocaleString();
-            document.getElementById('day-gerai-depan').innerText = "Rp " + dGeraiDepan.toLocaleString();
-            document.getElementById('day-keluar-ops').innerText = "Rp " + dK_Ops.toLocaleString();
-            document.getElementById('day-keluar-dapur').innerText = "Rp " + dK_Dapur.toLocaleString();
-            document.getElementById('day-keluar-kasbon').innerText = "Rp " + dK_Kasbon.toLocaleString();
-            document.getElementById('today-laci').innerText = "Rp " + dayLaci.toLocaleString();
-            document.getElementById('today-bni').innerText = "Rp " + dayBNI.toLocaleString();
-            document.getElementById('today-bri').innerText = "Rp " + dayBRI.toLocaleString();
-            document.getElementById('count-grab').innerText = cGrab; document.getElementById('count-dinein').innerText = cDinein; document.getElementById('count-antar').innerText = cAntar; document.getElementById('count-takeaway').innerText = cTakeaway;
-            document.getElementById('total-trx-riwayat').innerText = tCount;
-            document.getElementById('laporan-body-riwayat').innerHTML = h || '<tr><td colspan="4" class="text-center py-5">Kosong</td></tr>';
-            document.getElementById('arus-kas-body').innerHTML = arusHtml || '<tr><td colspan="4" class="text-center py-5">Kosong</td></tr>';
-
-            // --- INTEGRASI DASHBOARD DASH INFO ---
-            document.getElementById('dash-omzet').innerText = "Rp " + dayOmzet.toLocaleString();
-            document.getElementById('dash-trx').innerText = tCount;
-            document.getElementById('dash-keluar').innerText = "Rp " + dayKeluar.toLocaleString();
-            document.getElementById('dash-laci').innerText = "Rp " + dayLaci.toLocaleString();
-
-            const top3 = Object.keys(menuSalesStats).sort((a,b) => menuSalesStats[b]-menuSalesStats[a]).slice(0, 3);
-            document.getElementById('dash-top-selling').innerHTML = top3.map(name => {
-                const menu = masterMenu.find(m => m.name === name);
-                if(!menu) return '';
-                return `
-                    <div class="col-4">
-                        <div class="text-center p-3 rounded-4 border bg-light h-100">
-                            <img src="${menu.image || 'https://via.placeholder.com/150'}" class="rounded-circle mb-2" style="width:50px; height:50px; object-fit:cover;">
-                            <h6 class="fw-bold mb-0" style="font-size:0.7rem;">${menu.name}</h6>
-                            <span class="badge bg-warning text-dark rounded-pill" style="font-size:0.6rem;">${menuSalesStats[name]} Terjual</span>
-                        </div>
-                    </div>`;
-            }).join('') || '<div class="col-12 text-center text-muted py-4 small">Belum ada transaksi hari ini</div>';
-        });
-    };
-
-    window.renderAdminList = () => {
-        const q = document.getElementById('admin-search').value.toLowerCase();
-        const f = masterMenu.filter(m => m.name.toLowerCase().includes(q));
-        document.getElementById('admin-list-container').innerHTML = f.map(m => `
-            <div class="col-md-6">
-                <div class="p-3 border rounded-4 bg-white d-flex justify-content-between align-items-center shadow-sm">
-                    <div class="d-flex align-items-center">
-                        <img src="${m.image || 'https://via.placeholder.com/50'}" style="width:40px; height:40px; border-radius:8px; object-fit:cover;" class="me-2">
-                        <div><b class="d-block">${m.name}</b><small class="text-muted">${m.category} | Rp ${m.price.toLocaleString()}</small></div>
-                    </div>
-                    <div class="d-flex gap-1">
-                        <button class="btn btn-sm ${m.status==='Habis'?'btn-danger':'btn-success'} rounded-pill" onclick="toggleStok('${m.id}','${m.status}')">${m.status==='Habis'?'HABIS':'READY'}</button>
-                        <button class="btn btn-sm btn-outline-primary border-0" onclick="editMenu('${m.id}')"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-sm btn-outline-danger border-0" onclick="hapusMenu('${m.id}')"><i class="fas fa-trash-can"></i></button>
-                    </div>
-                </div>
-            </div>`).join('');
-    };
-
-    window.inputKategoriManual = async () => {
-        const { value: newCat } = await Swal.fire({ title: 'Induk Kategori Baru', input: 'text', placeholder: 'CONTOH: SNACK', showCancelButton: true });
-        if (newCat) {
-            const catUpper = newCat.toUpperCase();
-            const sel = document.getElementById('m_cat_select');
-            const opt = document.createElement('option');
-            opt.value = catUpper; opt.text = catUpper; sel.add(opt); sel.value = catUpper;
-        }
-    };
-
-    window.editMenu = (id) => {
-        const menu = masterMenu.find(m => m.id === id);
-        if(!menu) return;
-        const [induk, sub] = menu.category.split(' > ');
-        document.getElementById('m_id_edit').value = menu.id;
-        document.getElementById('m_name').value = menu.name;
-        document.getElementById('m_price').value = menu.price;
-        document.getElementById('m_cat_select').value = induk;
-        document.getElementById('m_sub_cat').value = sub || '';
-        document.getElementById('btn-simpan-menu').innerHTML = '<i class="fas fa-check-circle me-2"></i>UPDATE MENU';
-        document.getElementById('btn-batal-edit').style.display = 'inline-block';
-        document.getElementById('tab-tambah-menu').click();
-    };
-
-    window.resetFormMenu = () => {
-        document.getElementById('m_id_edit').value = ""; document.getElementById('m_name').value = ""; document.getElementById('m_price').value = ""; 
-        document.getElementById('m_sub_cat').value = ""; document.getElementById('m_file').value = "";
-        document.getElementById('btn-simpan-menu').innerHTML = '<i class="fas fa-cloud-arrow-up me-2"></i>SIMPAN DATA';
-        document.getElementById('btn-batal-edit').style.display = 'none';
-    };
-
-    window.simpanMenu = () => {
-        const idEdit = document.getElementById('m_id_edit').value;
-        const n = document.getElementById('m_name').value;
-        const p = parseInt(document.getElementById('m_price').value);
-        const induk = document.getElementById('m_cat_select').value;
-        const sub = document.getElementById('m_sub_cat').value.toUpperCase().trim();
-        const finalCategory = sub ? `${induk} > ${sub}` : induk;
-        const file = document.getElementById('m_file').files[0];
-        if(!n || !p) return Swal.fire('Error', 'Nama dan Harga wajib diisi', 'error');
-        const proc = (img = null) => {
-            const data = { name: n, price: p, category: finalCategory, status: 'Ready' };
-            if(img) data.image = img;
-            if(idEdit) { update(ref(db, `master_menu/${idEdit}`), data).then(() => { resetFormMenu(); Swal.fire('Berhasil', 'Data diperbarui', 'success'); }); }
-            else { if(!img) data.image = 'https://via.placeholder.com/150'; push(ref(db, 'master_menu'), data).then(() => { resetFormMenu(); Swal.fire('Sukses', 'Produk disimpan', 'success'); }); }
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWz63o_JFK3Ucvb7IuXI1cNO8SXMHvsEA",
+            authDomain: "kasirmaccanew.firebaseapp.com",
+            databaseURL: "https://kasirmaccanew-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "kasirmaccanew"
         };
-        if(file) { const r = new FileReader(); r.onload = (e) => proc(e.target.result); r.readAsDataURL(file); }
-        else { if(idEdit) { const oldMenu = masterMenu.find(m => m.id === idEdit); proc(oldMenu.image); } else { proc(); } }
-    };
 
-    window.toggleStok = (id, cur) => { update(ref(db, `master_menu/${id}`), { status: cur === 'Habis' ? 'Ready' : 'Habis' }); };
-    window.hapusMenu = (id) => { 
-        Swal.fire({ title: 'Hapus Menu?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Hapus!' }).then((result) => {
-            if (result.isConfirmed) { remove(ref(db, `master_menu/${id}`)); Toast.fire({ icon: 'success', title: 'Terhapus' }); }
-        });
-    };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-    // ────────────────────────────────────────────────
-    // Fungsi helper dari admin
-    // ────────────────────────────────────────────────
-    function getStatusBadge(status) {
-        if (status === 'Pending') return 'bg-warning text-dark';
-        if (status === 'Diterima') return 'bg-success';
-        if (status === 'Ditolak' || status === 'Dibatalkan') return 'bg-danger';
-        return 'bg-secondary';
-    }
+        const TOKO_LAT = -5.2039023; 
+        const TOKO_LNG = 119.5002886;
+        const TARIF_PER_KM = 2000;    
+        const MIN_ONGKIR = 5000;      
+        const MIN_BELANJA_FREE = 50000;
 
-    function playNotif() {
-        const audio = new Audio('https://github.com/chuacarangki/toko_macca_kasir/raw/refs/heads/main/notif.mp3');
-        audio.play().catch(e => console.log("Notif suara tertunda interaksi user."));
-    }
+        let userData = null;
+        let masterMenu = [];
+        let cart = [];
+        let map, marker;
 
-    // ────────────────────────────────────────────────
-    // Fungsi utama pesanan online (integrasi admin + kasir)
-    // ────────────────────────────────────────────────
-function listenOnlineOrders() {
-        const orderRef = ref(db, 'pesanan_masuk');
-        onValue(orderRef, (snapshot) => {
-            const tbody = document.getElementById('online-orders-body');
-            if (!tbody) return;
-            tbody.innerHTML = '';
+        // --- FUNGSI GLOBAL ---
+        function hitungJarak(lat1, lon1, lat2, lon2) {
+            const R = 6371; 
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; 
+        }
 
-            const data = snapshot.val();
-            if (!data) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">Belum ada pesanan masuk</td></tr>';
+        window.handleWaLogin = async () => {
+            const nama = document.getElementById('waNama').value;
+            const wa = document.getElementById('waNomor').value;
+            if(!nama || !wa) return Swal.fire('Error', 'Nama dan WA harus diisi', 'error');
+
+            const userId = 'user_' + wa;
+            const userRef = ref(db, `users/${userId}`);
+            const snap = await get(userRef);
+            
+            if(snap.exists()) {
+                userData = snap.val();
+            } else {
+                userData = { uid: userId, nama, wa, alamat: '', lat: -5.1476, lng: 119.4327, avatar: '' };
+                await set(userRef, userData);
+            }
+            localStorage.setItem('user_lamacca', JSON.stringify(userData));
+            checkAuth();
+        };
+
+        window.handleLogout = () => {
+            localStorage.removeItem('user_lamacca');
+            location.reload();
+        };
+
+        window.initMap = (lat, lng) => {
+            if (map) {
+                map.setView([lat, lng], 15);
+                marker.setLatLng([lat, lng]);
                 return;
             }
+            map = L.map('map').setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            marker = L.marker([lat, lng], {draggable: true}).addTo(map);
+            marker.on('dragend', () => {
+                const pos = marker.getLatLng();
+                document.getElementById('upLat').value = pos.lat;
+                document.getElementById('upLng').value = pos.lng;
+            });
+        };
 
-            // Urutkan terbaru dulu (berdasarkan timestamp)
-            const sortedKeys = Object.keys(data).sort((a, b) => data[b].timestamp - data[a].timestamp);
+        window.getLocation = () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((p) => {
+                    const lat = p.coords.latitude, lng = p.coords.longitude;
+                    window.initMap(lat, lng);
+                    document.getElementById('upLat').value = lat;
+                    document.getElementById('upLng').value = lng;
+                }, () => Swal.fire('Info', 'Aktifkan GPS Anda', 'info'));
+            }
+        };
 
-            let pendingCount = 0;
-            let totalRevenue = 0;
-            let orderCount = 0;
+        window.switchView = (view) => {
+            ['home', 'orders', 'profile'].forEach(v => {
+                const el = document.getElementById('view-'+v);
+                if(el) el.style.display = v === view ? 'block' : 'none';
+            });
+            document.querySelectorAll('.nav-item-btn').forEach(b => b.classList.remove('active'));
+            const btn = document.getElementById('btn-' + view);
+            if(btn) btn.classList.add('active');
+            if(view === 'orders') loadOrderHistory();
+            if(view === 'profile') loadProfile();
+        };
 
-            sortedKeys.forEach(key => {
-                const order = data[key];
+        window.addToCart = (id) => {
+            const item = masterMenu.find(m => m.id === id);
+            if(!item || item.status === 'Habis') return;
+            const inCart = cart.find(c => c.id === id);
+            inCart ? inCart.qty++ : cart.push({...item, qty: 1});
+            updateCartUI();
+        };
+
+        window.saveProfile = () => {
+            const up = { 
+                alamat: document.getElementById('upAlamat').value,
+                lat: parseFloat(document.getElementById('upLat').value), 
+                lng: parseFloat(document.getElementById('upLng').value)
+            };
+            update(ref(db, `users/${userData.uid}`), up).then(() => {
+                Swal.fire('Sukses', 'Profil Diupdate', 'success');
+                userData = {...userData, ...up};
+                localStorage.setItem('user_lamacca', JSON.stringify(userData));
+            });
+        };
+
+        window.uploadAvatar = (input) => {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => update(ref(db, `users/${userData.uid}`), { avatar: e.target.result }).then(() => { document.getElementById('profImg').src = e.target.result; });
+                reader.readAsDataURL(input.files[0]);
+            }
+        };
+
+        window.searchMenu = (val) => {
+            const filtered = masterMenu.filter(m => m.name.toLowerCase().includes(val.toLowerCase()));
+            renderMenuByData(filtered);
+        };
+
+        window.renderMenu = (cat, el) => {
+            if(el) { document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active')); el.classList.add('active'); }
+            const filtered = cat === 'Semua' ? masterMenu : masterMenu.filter(m => m.category === cat);
+            renderMenuByData(filtered);
+        };
+
+        window.toggleOngkir = (isAntar, ongkir, belanja) => {
+            const row = document.getElementById('row-ongkir');
+            if(row) row.style.opacity = isAntar ? '1' : '0.3';
+            const totalDisplay = document.getElementById('text-total');
+            if(totalDisplay) totalDisplay.innerText = 'Rp ' + (belanja + (isAntar ? ongkir : 0)).toLocaleString();
+        };
+
+        window.updatePayInfo = (t) => {
+            const b = document.getElementById('pay-info-box');
+            if(!b) return;
+            if(t==='COD') {
+                b.innerHTML = '<div class="animate__animated animate__fadeIn"><i class="fas fa-hand-holding-usd me-1 text-success"></i> Bayar tunai saat pesanan tiba.</div>';
+            } else if(t==='BANK') {
+                b.innerHTML = '<div class="animate__animated animate__fadeIn"><i class="fas fa-university me-1 text-primary"></i> BRI: 0403 0101 2546 539 <br>A/N SULKIFLI</div>';
+            } else if(t==='QRIS') {
+                b.innerHTML = `
+                    <div class="animate__animated animate__fadeIn text-center mt-2">
+                        <p class="mb-2 fw-bold" style="font-size:12px;">Scan QRIS Lesehan Lamacca:</p>
+                        <img src="https://i.ibb.co.com/mC8SDk1j/Whats-App-Image-2026-01-01-at-16-20-37.jpg" 
+                             class="img-fluid rounded border shadow-sm p-2 bg-white" 
+                             style="width: 180px; height: auto;">
+                        <p class="mt-2 mb-0 fw-bold text-danger" style="font-size:10px;">
+                            <i class="fas fa-info-circle"></i> Screenshot & kirim bukti ke WA
+                        </p>
+                    </div>`;
+            }
+        };
+
+        // --- INTERNAL FUNCTIONS ---
+        function checkAuth() {
+            const savedUser = localStorage.getItem('user_lamacca');
+            if(savedUser) {
+                userData = JSON.parse(savedUser);
+                document.getElementById('userDisplay').innerText = userData.nama;
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                loadMenuData();
+                listenToOrderStatus(); // AKTIFKAN NOTIFIKASI
+            } else {
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('main-app').style.display = 'none';
+            }
+        }
+
+        function loadMenuData() {
+            onValue(ref(db, 'master_menu'), (snap) => {
+                masterMenu = [];
+                if(snap.exists()) {
+                    Object.keys(snap.val()).forEach(k => masterMenu.push({id: k, ...snap.val()[k]}));
+                    renderBestSeller(); renderCategories(); window.renderMenu('Semua');
+                }
+            });
+        }
+
+        async function loadProfile() {
+            const snap = await get(ref(db, `users/${userData.uid}`));
+            const u = snap.val();
+            document.getElementById('profNama').innerText = u.nama;
+            document.getElementById('profImg').src = u.avatar || `https://ui-avatars.com/api/?name=${u.nama}&background=004aad&color=fff`;
+            document.getElementById('upWA').value = u.wa;
+            document.getElementById('upAlamat').value = u.alamat || '';
+            const lt = u.lat || -5.1476, lg = u.lng || 119.4327;
+            document.getElementById('upLat').value = lt;
+            document.getElementById('upLng').value = lg;
+            setTimeout(() => { window.initMap(lt, lg); map.invalidateSize(); }, 500);
+        }
+
+        function updateCartUI() {
+            const bar = document.getElementById('cartBar');
+            if(cart.length > 0) {
+                bar.style.display = 'flex';
+                document.getElementById('cartQty').innerText = cart.reduce((a,b) => a + b.qty, 0);
+                document.getElementById('cartTotal').innerText = 'Rp ' + cart.reduce((a,b) => a + (b.qty * b.price), 0).toLocaleString();
+            } else bar.style.display = 'none';
+        }
+
+        function renderBestSeller() {
+            const best = masterMenu.filter(m => m.status !== 'Habis').slice(0, 6);
+            document.getElementById('bestSellerGrid').innerHTML = best.map(m => `
+                <div class="best-card" onclick="addToCart('${m.id}')">
+                    <img src="${m.image || 'https://via.placeholder.com/150'}">
+                    <div class="small fw-bold text-truncate">${m.name}</div>
+                    <div class="text-primary fw-bold" style="font-size:11px;">Rp ${parseInt(m.price).toLocaleString()}</div>
+                </div>`).join('');
+        }
+
+        function renderCategories() {
+            const cats = ['Semua', ...new Set(masterMenu.map(m => m.category))];
+            document.getElementById('catList').innerHTML = cats.map(c => `<button class="cat-pill ${c==='Semua'?'active':''}" onclick="renderMenu('${c}', this)">${c}</button>`).join('');
+        }
+
+        function renderMenuByData(data) {
+            document.getElementById('menuGrid').innerHTML = data.map(m => {
+                const isHabis = m.status === 'Habis';
+                return `<div class="col-6">
+                    <div class="menu-card ${isHabis ? 'is-habis' : ''}" onclick="${isHabis ? '' : `addToCart('${m.id}')`}">
+                        <div class="menu-img-container">
+                            <img src="${m.image || 'https://via.placeholder.com/150'}" class="menu-img">
+                            <div class="habis-overlay"><span class="badge bg-danger">HABIS</span></div>
+                            <div class="price-tag">Rp ${parseInt(m.price).toLocaleString()}</div>
+                        </div>
+                        <div class="p-3 text-center">
+                            <div class="fw-bold small text-truncate mb-2">${m.name}</div>
+                            <button class="btn btn-primary btn-sm w-100 rounded-pill fw-bold" ${isHabis ? 'disabled' : ''}>${isHabis ? 'HABIS' : 'TAMBAH'}</button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function loadOrderHistory() {
+            onValue(ref(db, 'pesanan_masuk'), (snap) => {
+                const list = document.getElementById('orderHistoryList'); list.innerHTML = '';
+                if(snap.exists()) {
+                    const myOrders = Object.keys(snap.val()).map(k => ({id:k, ...snap.val()[k]})).filter(o => o.uid === userData.uid).sort((a,b) => b.timestamp - a.timestamp);
+                    myOrders.forEach(o => {
+                        list.innerHTML += `<div class="card p-3 border-0 rounded-4 shadow-sm mb-3 animate__animated animate__fadeIn">
+                            <div class="d-flex justify-content-between small"><span class="text-muted">${o.waktu}</span><span class="badge bg-primary">${o.status}</span></div>
+                            <div class="fw-bold mt-2">${o.items.map(i => i.name+' x'+i.qty).join(', ')}</div>
+                            <div class="text-primary fw-bold">Rp ${o.total_bayar.toLocaleString()}</div>
+                        </div>`;
+                    });
+                }
+            });
+        }
+
+        // --- PROSES CHECKOUT ---
+        window.processCheckout = async () => {
+            const uSnap = await get(ref(db, `users/${userData.uid}`));
+            const profile = uSnap.val();
+
+            if (!profile.lat || !profile.lng || !profile.alamat) {
+                return Swal.fire({
+                    title: 'Lengkapi Profil',
+                    text: 'Silakan isi Alamat & Titik Lokasi di menu Profil agar kami bisa menghitung ongkir.',
+                    icon: 'warning',
+                    confirmButtonText: 'Ke Profil',
+                    confirmButtonColor: '#004aad'
+                }).then(() => switchView('profile'));
+            }
+
+            const totalBelanja = cart.reduce((a,b) => a + (b.qty * b.price), 0);
+            const jarakKM = hitungJarak(TOKO_LAT, TOKO_LNG, profile.lat, profile.lng);
+            
+            // --- Logika Baru Disisipkan Di Sini ---
+            let ongkirNormal = 0;
+            if (jarakKM <= 1) {
+                ongkirNormal = 5000;
+            } else {
+                const jarakMeter = jarakKM * 1000;
+                const hitungKasar = jarakMeter * 5;
+                // Membulatkan ke atas ke kelipatan 1000 terdekat
+                ongkirNormal = Math.ceil(hitungKasar / 1000) * 1000;
+            }
+            // --- Akhir Logika Baru ---
+
+            const isFree = totalBelanja >= MIN_BELANJA_FREE;
+            const ongkirFinal = isFree ? 0 : ongkirNormal;
+
+            const itemsHtml = cart.map(i => `
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="text-start">
+                        <div class="fw-bold" style="font-size: 14px;">${i.name}</div>
+                        <div class="text-muted" style="font-size: 12px;">${i.qty} x Rp ${i.price.toLocaleString()}</div>
+                    </div>
+                    <div class="fw-bold text-dark">Rp ${(i.qty*i.price).toLocaleString()}</div>
+                </div>`).join('');
+
+            const { value: res } = await Swal.fire({
+                title: '<span style="font-size: 18px; font-weight: 800;">Konfirmasi Pesanan</span>',
+                html: `
+                    <div class="text-start p-1">
+                        <div class="mb-3 p-3 rounded-4 bg-light border-0">
+                            <div class="small fw-bold text-muted mb-2 text-uppercase" style="letter-spacing: 1px;">Item Pesanan</div>
+                            ${itemsHtml}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="small fw-bold text-muted mb-2 text-uppercase">Metode Pengiriman</div>
+                            <div class="btn-group w-100 shadow-sm rounded-pill overflow-hidden" style="border: 1px solid #eee;">
+                                <input type="radio" class="btn-check" name="tipe" id="t1" value="Antar" checked onclick="toggleOngkir(true, ${ongkirFinal}, ${totalBelanja})">
+                                <label class="btn btn-outline-primary border-0 py-2 fw-bold" for="t1"><i class="fas fa-motorcycle me-2"></i>ANTAR</label>
+                                
+                                <input type="radio" class="btn-check" name="tipe" id="t2" value="Jemput" onclick="toggleOngkir(false, 0, ${totalBelanja})">
+                                <label class="btn btn-outline-primary border-0 py-2 fw-bold" for="t2"><i class="fas fa-walking me-2"></i>AMBIL</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="small fw-bold text-muted mb-2 text-uppercase">Metode Pembayaran</div>
+                            <div class="btn-group w-100 shadow-sm rounded-pill overflow-hidden" style="border: 1px solid #eee; font-size: 11px;">
+                                <input type="radio" class="btn-check" name="bayar" id="b1" value="COD" checked onclick="updatePayInfo('COD')">
+                                <label class="btn btn-outline-success border-0 py-2 fw-bold" for="b1">COD</label>
+                                
+                                <input type="radio" class="btn-check" name="bayar" id="b2" value="Bank" onclick="updatePayInfo('BANK')">
+                                <label class="btn btn-outline-success border-0 py-2 fw-bold" for="b2">TRANSFER</label>
+
+                                <input type="radio" class="btn-check" name="bayar" id="b3" value="QRIS" onclick="updatePayInfo('QRIS')">
+                                <label class="btn btn-outline-success border-0 py-2 fw-bold" for="b3">QRIS</label>
+                            </div>
+                            <div id="pay-info-box" class="pay-info-box mt-2 text-center" style="font-size: 12px; min-height: 40px;">
+                                Bayar tunai saat pesanan tiba.
+                            </div>
+                        </div>
+
+                        <div class="card border-0 rounded-4 bg-primary text-white p-3 shadow-lg">
+                            <div class="d-flex justify-content-between small opacity-75"><span>Subtotal</span><span>Rp ${totalBelanja.toLocaleString()}</span></div>
+                            <div class="d-flex justify-content-between small opacity-75" id="row-ongkir">
+                                <span>Ongkir (${jarakKM.toFixed(1)} km)</span>
+                                <span id="val-ongkir">${isFree ? 'GRATIS' : 'Rp '+ongkirNormal.toLocaleString()}</span>
+                            </div>
+                            <hr class="my-2 opacity-25">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">TOTAL BAYAR</span>
+                                <span id="text-total" style="font-size: 20px; font-weight: 800;">Rp ${(totalBelanja + ongkirFinal).toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                cancelButtonText: 'Batal',
+                confirmButtonText: 'Kirim Pesanan',
+                confirmButtonColor: '#004aad',
+                preConfirm: () => ({ 
+                    tipe: document.querySelector('input[name="tipe"]:checked').value, 
+                    bayar: document.querySelector('input[name="bayar"]:checked').value,
+                    ongkir: document.querySelector('input[name="tipe"]:checked').value === 'Antar' ? ongkirFinal : 0
+                })
+            });
+
+            if(res) {
+                const order = { 
+                    uid: userData.uid, pelanggan: profile.nama, telepon: profile.wa, alamat: profile.alamat, 
+                    lat: profile.lat, lng: profile.lng, items: cart, total_belanja: totalBelanja,
+                    ongkir: res.ongkir, total_bayar: totalBelanja + res.ongkir, 
+                    tipe: res.tipe, metode_bayar: res.bayar, status: 'Pending', 
+                    waktu: new Date().toLocaleString('id-ID'), timestamp: Date.now() 
+                };
                 
-                // --- BAGIAN YANG DIUBAH AGAR TIDAK MENGHILANG ---
-                // Kita izinkan status Proses, Menunggu Driver, Diantar, dan Sukses untuk tetap tampil
-                const statusTampil = ['Pending', 'Diterima', 'Proses', 'Menunggu Driver', 'Diantar', 'Sukses'];
-                if (!statusTampil.includes(order.status)) return;
+                push(ref(db, 'pesanan_masuk'), order).then(() => { 
+                    if (order.metode_bayar === 'COD') {
+                        Swal.fire({ title: 'Berhasil!', text: 'Pesanan COD Anda telah tersimpan.', icon: 'success', confirmButtonColor: '#004aad' });
+                    } else {
+                        Swal.fire({ 
+                            title: 'Pesanan Tersimpan!', 
+                            text: 'Silakan klik tombol di bawah untuk kirim bukti bayar ke WA.', 
+                            icon: 'info', 
+                            showCancelButton: true,
+                            confirmButtonText: '<i class="fab fa-whatsapp me-2"></i>Kirim Bukti Bayar',
+                            confirmButtonColor: '#25d366'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                let pesanChat = `Halo Admin Lesehan Lamacca, saya ingin kirim bukti bayar untuk pesanan saya (Metode: ${order.metode_bayar}).`;
+                                window.open(`https://wa.me/6282191262682?text=${pesanChat}`, '_blank');
+                            }
+                        });
+                    }
+                    cart = []; updateCartUI(); switchView('orders');
+                });
+            }
+        };
+        // --- NOTIFIKASI STATUS PESANAN ---
+        function listenToOrderStatus() {
+            if (!userData) return;
+            onValue(ref(db, 'pesanan_masuk'), (snap) => {
+                if (snap.exists()) {
+                    const data = snap.val();
+                    const now = Date.now();
+                    Object.keys(data).forEach(key => {
+                        const order = data[key];
+                        if (order.uid === userData.uid && order.status === 'Diterima' && !localStorage.getItem('notif_accept_' + key) && (now - order.timestamp) < 86400000) { 
+                            localStorage.setItem('notif_accept_' + key, 'true');
+                            
+                            // Suara Notifikasi
+                            const audio = new Audio('https://github.com/chuacarangki/toko_macca_kasir/raw/refs/heads/main/notif.mp3');
+                            audio.play().catch(e => console.log("Sound blocked by browser."));
 
-                orderCount++;
-                totalRevenue += Number(order.total_bayar || 0);
-                if (order.status === 'Pending') pendingCount++;
-
-                const itemsText = order.items?.map(i => `${i.name} (x${i.qty})`).join('<br>') || '-';
-
-                const mapsLink = (order.lat && order.lng)
-                    ? `<a href="http://maps.google.com/maps?q=${order.lat},${order.lng}" target="_blank" class="btn btn-sm btn-maps">
-                        <i class="fas fa-directions me-1"></i> Rute
-                       </a>`
-                    : `<span class="text-muted small">Tanpa GPS</span>`;
-
-                // LOGIKA TOMBOL AKSI DISESUAIKAN DENGAN ALUR BARU
-                let actionHtml = '';
-                if (order.status === 'Pending') {
-                    actionHtml = `
-                        <button class="btn btn-sm btn-success me-1" onclick="updateStatusPesanan('${key}', 'Diterima')">Terima</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="updateStatusPesanan('${key}', 'Dibatalkan')">Batal</button>
-                    `;
-                } else if (order.status === 'Diterima') {
-                    actionHtml = `
-                        <button class="btn btn-sm btn-primary" onclick="prosesOnlineKeKasir('${key}')">Proses ke Dapur</button>
-                    `;
-                } else if (order.status === 'Proses') {
-                    actionHtml = `
-                        <button class="btn btn-sm btn-warning fw-bold" onclick="updateStatusPesanan('${key}', 'Menunggu Driver')">SIAP SAJI</button>
-                    `;
-                } else if (order.status === 'Menunggu Driver') {
-                    actionHtml = `<span class="badge bg-info text-dark">PANGGIL DRIVER...</span>`;
-                } else if (order.status === 'Diantar') {
-                    actionHtml = `<span class="badge bg-dark">DIANTAR: ${order.driver || ''}</span>`;
-                } else if (order.status === 'Sukses') {
-                    actionHtml = `<span class="badge bg-success">SELESAI</span>`;
-                }
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="small">${order.waktu}</td>
-                    <td>
-                        <div class="fw-bold">${order.pelanggan}</div>
-                        <div class="small text-muted">${order.telepon || '-'}</div>
-                        <div class="small text-primary">${order.alamat || ''}</div>
-                    </td>
-                    <td class="small">${itemsText}</td>
-                    <td class="fw-bold text-primary">Rp ${Number(order.total_bayar || 0).toLocaleString()}</td>
-                    <td><span class="badge ${getStatusBadge(order.status)}">${order.status}</span></td>
-                    <td>${mapsLink}</td>
-                    <td>${actionHtml}</td>
-                `;
-                tbody.appendChild(tr);
-
-                // Notifikasi suara untuk pending baru
-                if (order.status === 'Pending' && !localStorage.getItem('alert_' + key)) {
-                    playNotif();
-                    localStorage.setItem('alert_' + key, 'true');
+                            // Visual Notification (Toast)
+                            const Toast = Swal.mixin({
+                                toast: true, position: 'top-end', showConfirmButton: false, timer: 6000, timerProgressBar: true
+                            });
+                            Toast.fire({
+                                icon: 'success', title: 'Pesanan Diterima! 👨‍🍳', text: 'Admin sedang memproses pesananmu.'
+                            });
+                        }
+                    });
+                    if (order.status === 'Menunggu Driver' && !localStorage.getItem('notif_wait_driver_' + key)) {
+    // Notif + suara
+    localStorage.setItem('notif_wait_driver_' + key, 'true');
+}
+// Serupa untuk 'Diantar' dan 'Sukses'
                 }
             });
-
-            // Update badge pending di sidebar
-            const countBadge = document.getElementById('online-count');
-            if (countBadge) {
-                countBadge.textContent = pendingCount;
-                countBadge.style.display = pendingCount > 0 ? 'inline' : 'none';
-            }
-
-            // Jika tidak ada data yang ditampilkan
-            if (orderCount === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">Tidak ada pesanan aktif</td></tr>';
-            }
-        });
-    }
-
-    // ────────────────────────────────────────────────
-    // Fungsi update status (kompatibel dengan admin & kasir)
-    // ────────────────────────────────────────────────
-    window.updateStatusPesanan = (id, newStatus) => {
-        update(ref(db, `pesanan_masuk/${id}`), { status: newStatus });
-        // Optional: refresh UI atau beri notif
-    };
-
-    // ────────────────────────────────────────────────
-    // Jalankan listener saat halaman dimuat
-    // ────────────────────────────────────────────────
-    listenOnlineOrders();
-
-    // ... sisanya kode JavaScript dari file KASIR OFF7.html kamu ...
-    // (fungsi cart, saveTransaction, loadLaporan, switchTab, dll tetap seperti aslinya)
-window.updateStatusPesanan = (orderId, statusBaru) => {
-    update(ref(db, `pesanan_masuk/${orderId}`), { status: statusBaru })
-    .then(() => {
-        if(statusBaru === 'Ditolak') {
-             Swal.fire('Ditolak', 'Pesanan telah dihapus dari antrean', 'error');
         }
-    });
-};
-window.prosesOnlineKeKasir = (orderId) => {
-    get(child(ref(db), `pesanan_masuk/${orderId}`)).then((snapshot) => {
-        if (snapshot.exists()) {
-            const order = snapshot.val();
-            
-            // 1. Masukkan data ke keranjang kasir
-            cart = order.items.map(item => ({
-                id: item.id,
-                name: item.name,
-                price: parseInt(item.price),
-                qty: parseInt(item.qty)
-            }));
 
-            // 2. Render keranjang agar muncul di UI
-            renderCart();
-
-            // 3. AUTO-FILL Metode Pembayaran di Kasir sesuai pilihan pelanggan
-            const payMethodSelect = document.getElementById('payMethod');
-            if (order.metode_bayar === 'Tunai (COD)') {
-                payMethodSelect.value = 'Tunai';
-            } else if (order.metode_bayar === 'Transfer Bank') {
-                payMethodSelect.value = 'BRI';
-            } else if (order.metode_bayar === 'QRIS') {
-                payMethodSelect.value = 'BNI';
-            }
-
-            // 4. AUTO-FILL Nominal Bayar agar pas (tidak ada kembalian)
-            // Ini agar fungsi saveTransaction Anda bisa langsung berjalan
-            document.getElementById('payAmount').value = order.total_bayar;
-
-            // 5. Pindah ke tab kasir
-            switchTab('tab-kasir', document.getElementById('btn-tab-kasir'));
-            
-            // 6. Jalankan fungsi simpan transaksi milik Anda
-            // Ini akan otomatis memotong stok, menambah laporan, dan mengisi saldo BRI/BNI/KASIR
-            saveTransaction();
-
-            // 7. Update status di Firebase agar pesanan hilang dari daftar antrean online
-            update(ref(db, `pesanan_masuk/${orderId}`), { status: 'Selesai & Masuk Laporan' });
-
-            Swal.fire({
-                title: 'Berhasil!',
-                text: `Pesanan ${order.pelanggan} telah diproses dan saldo ${payMethodSelect.value} bertambah.`,
-                icon: 'success',
-                timer: 2000
-            });
-        }
-    });
-};
-// Fungsi untuk menghitung dan memperbarui tampilan statistik online
-function updateOnlineStats(ordersArray) {
-    let totalRevenue = 0;
-    let totalOrders = ordersArray.length;
-
-    // Hitung total pendapatan dari semua pesanan di daftar
-    ordersArray.forEach(order => {
-        // Pastikan total_bayar diperlakukan sebagai angka
-        const nominal = parseInt(order.total_bayar) || 0;
-        totalRevenue += nominal;
-    });
-
-    // Hitung rata-rata
-    const average = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
-
-    // Update elemen HTML (Sesuai ID yang kita buat sebelumnya)
-    document.getElementById('online-total-revenue').innerText = formatRupiah(totalRevenue);
-    document.getElementById('online-total-orders').innerHTML = `${totalOrders} <small class="text-muted" style="font-size: 0.8rem;">Order</small>`;
-    document.getElementById('online-avg-order').innerText = formatRupiah(average);
-    
-    // Update badge di sidebar jika ada
-    const onlineCountBadge = document.getElementById('online-count');
-    if (onlineCountBadge) {
-        onlineCountBadge.innerText = totalOrders;
-        onlineCountBadge.style.display = totalOrders > 0 ? 'inline-block' : 'none';
-    }
-}
-window.submitAndPrint = async () => {
-    // Ambil input nama dengan ID 'customer-name' (sesuai file backup kamu)
-    const nameInput = document.getElementById('customer-name');
-    const cashInput = document.getElementById('cash-amount');
-
-    // Validasi Dasar
-    if (!nameInput || !nameInput.value) {
-        return Swal.fire('Perhatian', 'Nama pelanggan wajib diisi!', 'warning');
-    }
-    if (cart.length === 0) {
-        return Swal.fire('Gagal', 'Keranjang masih kosong!', 'error');
-    }
-
-    // Konversi nominal bayar (hapus titik format rupiah)
-    const nominalBayar = parseInt(cashInput.value.replace(/\./g, '')) || 0;
-
-    // Validasi Pembayaran
-    if (paymentType === 'TUNAI' && nominalBayar < currentTotal) {
-        return Swal.fire('Uang Kurang', 'Jumlah bayar tidak mencukupi!', 'error');
-    }
-    if (paymentType === 'ONLINE' && !onlineMethod) {
-    return Swal.fire('Perhatian', 'Pilih bank untuk pembayaran ONLINE (BNI/QRIS atau BRI/Transfer)', 'warning');
-}
-
-    Swal.fire({
-        title: 'Menyimpan Transaksi...',
-        allowOutsideClick: false,
-        didOpen: () => { Swal.showLoading(); }
-    });
-
-    try {
-        // Simpan ke Firebase
-        // Pastikan variabel 'db', 'push', dan 'ref' sudah terimport di atas
-        await push(ref(db, 'transaksi'), {
-            type: 'PENJUALAN',
-            name: nameInput.value,
-            items: cart,
-            total: currentTotal,
-            service: serviceType,
-            method: paymentType,
-            bank: (paymentType === 'ONLINE' ? onlineMethod : '-'),
-            petugas: document.getElementById('user-display')?.innerText || 'Admin',
-            time: new Date().toISOString(),
-            category: 'Penjualan Kasir'
-        });
-
-        // Cetak Struk
-        window.print();
-
-        // Tutup Modal
-        const modalEl = document.getElementById('checkoutModal');
-        const modalInstance = bootstrap.Modal.getInstance(modalEl);
-        if (modalInstance) modalInstance.hide();
-
-        // Reset
-        nameInput.value = '';
-        cashInput.value = '';
-        if (typeof batalSemua === 'function') batalSemua();
-        
-        Swal.fire('Sukses', 'Transaksi Berhasil Disimpan', 'success');
-        if (typeof loadLaporan === 'function') loadLaporan();
-
-    } catch (error) {
-        console.error("Firebase Error:", error);
-        Swal.fire('Error', 'Gagal menyimpan: ' + error.message, 'error');
-    }
-};
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        checkAuth();
+    </script>
 </body>
 </html>
