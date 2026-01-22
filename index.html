@@ -3,180 +3,449 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesehan Lamacca - Toko Online</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Lesehan Lamacca • Pesan Makan Enak</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+
     <style>
-        :root { --primary-blue: #004aad; --primary-deep: #002d62; --soft-bg: #f8fafd; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--soft-bg); padding-bottom: 90px; margin: 0; overflow-x: hidden; }
+        :root {
+            --primary: #0d9488;
+            --primary-dark: #0f766e;
+            --primary-light: #5eead4;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow-sm: 0 4px 16px rgba(0,0,0,0.06);
+            --shadow-md: 0 10px 30px rgba(0,0,0,0.12);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding-bottom: 120px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .header-main {
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)),
+                        url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80') center/cover;
+            padding: 2.2rem 1.25rem 4.2rem;
+            border-radius: 0 0 2.2rem 2.2rem;
+            color: white;
+            position: relative;
+        }
+
+        .search-box {
+            position: absolute;
+            bottom: -1.4rem;
+            left: 1.25rem;
+            right: 1.25rem;
+            background: var(--card);
+            border-radius: 1.3rem;
+            padding: 0.8rem 1.3rem;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            z-index: 10;
+        }
 
         #auth-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(0,45,98,0.9), rgba(0,74,173,0.8)), 
-                        url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80');
-            background-size: cover; background-position: center;
-            z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(15,118,110,0.9), rgba(13,148,136,0.85)),
+                        url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80') center/cover;
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
         }
-        .glass-card { background: #fff; border-radius: 30px; width: 100%; max-width: 400px; padding: 35px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); }
 
-        .header-lux {
-            background: linear-gradient(135deg, var(--primary-deep) 0%, var(--primary-blue) 100%);
-            padding: 25px 20px 70px; border-radius: 0 0 40px 40px; color: white; position: relative;
+        .auth-card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(16px);
+            border-radius: 1.8rem;
+            padding: 2.5rem 1.8rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.35);
         }
-        .search-box {
-            position: absolute; bottom: -22px; left: 20px; right: 20px;
-            background: white; border-radius: 15px; padding: 10px 15px;
-            display: flex; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+
+        .scroll-container {
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+            padding: 0 1.25rem;
         }
-        .search-box input { border: none; width: 100%; margin-left: 10px; outline: none; font-size: 14px; }
+        .scroll-container::-webkit-scrollbar { display: none; }
 
-        .promo-scroll, .best-seller-wrapper, .category-wrapper { overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
-        .promo-scroll::-webkit-scrollbar, .best-seller-wrapper::-webkit-scrollbar, .category-wrapper::-webkit-scrollbar { display: none; }
-        
-        .promo-card { display: inline-block; width: 280px; height: 120px; margin-right: 15px; border-radius: 20px; padding: 20px; color: white; position: relative; overflow: hidden; }
-        .promo-1 { background: linear-gradient(45deg, #ff9100, #ffbd59); }
-        .promo-2 { background: linear-gradient(45deg, #00b4db, #0083b0); }
+        .promo-card {
+            display: inline-block;
+            width: 260px;
+            height: 120px;
+            margin-right: 1rem;
+            border-radius: 1.2rem;
+            padding: 1.25rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            box-shadow: var(--shadow-sm);
+            vertical-align: top;
+        }
+        .promo-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6));
+            z-index: 1;
+        }
+        .promo-card h6, .promo-card p {
+            position: relative;
+            z-index: 2;
+            white-space: normal;
+        }
 
-        .best-card { display: inline-block; width: 140px; margin-right: 12px; background: white; border-radius: 18px; padding: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center; cursor: pointer; }
-        .best-card img { width: 100%; height: 100px; object-fit: cover; border-radius: 12px; margin-bottom: 8px; }
+        .best-card {
+            display: inline-block;
+            width: 155px;
+            margin-right: 1rem;
+            background: var(--card);
+            border-radius: 1.3rem;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.25s ease;
+        }
+        .best-card:hover { transform: translateY(-8px); }
 
-        .cat-pill { display: inline-block; padding: 10px 22px; border-radius: 15px; background: white; margin-right: 10px; font-size: 13px; font-weight: 700; color: #666; border: none; }
-        .cat-pill.active { background: var(--primary-blue); color: white; }
+        /* Style untuk section kategori horizontal (ukuran kecil & rapi di HP) */
+        .category-section {
+            margin: 2rem 0 3rem;
+        }
+        .category-title {
+            padding: 0 1.25rem 0.75rem;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+        .category-scroll {
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+            padding: 0 1.25rem 1rem;
+        }
+        .category-scroll::-webkit-scrollbar { display: none; }
 
-        .menu-card { background: white; border-radius: 22px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.04); border: none; height: 100%; position: relative; cursor: pointer; transition: 0.3s; }
-        .menu-card:active { transform: scale(0.95); }
-        .menu-img-container { position: relative; width: 100%; height: 130px; }
-        .menu-img { height: 100%; width: 100%; object-fit: cover; }
-        .is-habis .menu-img { filter: grayscale(1) brightness(0.6); }
-        .habis-overlay { position: absolute; top:0; left:0; width:100%; height:100%; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.3); }
-        .is-habis .habis-overlay { display: flex; }
-        .price-tag { position: absolute; bottom: 8px; right: 8px; background: rgba(255,255,255,0.9); padding: 3px 10px; border-radius: 8px; font-weight: 800; color: var(--primary-blue); font-size: 11px; }
+        .menu-horizontal-card {
+            display: inline-block;
+            width: 180px;
+            background: var(--card);
+            border-radius: 1.2rem;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            margin-right: 1rem;
+            vertical-align: top;
+            transition: transform 0.25s ease;
+            cursor: pointer;
+        }
+        .menu-horizontal-card:hover { transform: translateY(-6px); }
 
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: white; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -10px 30px rgba(0,0,0,0.08); z-index: 999; border-radius: 25px 25px 0 0; }
-        .nav-item-btn { text-align: center; color: #a0aec0; border: none; background: none; flex: 1; font-size: 11px; font-weight: 600; outline: none; }
-        .nav-item-btn.active { color: var(--primary-blue); }
-        .nav-item-btn i { font-size: 22px; margin-bottom: 4px; display: block; }
+        .menu-horizontal-img-container {
+            position: relative;
+            height: 140px;
+        }
+        .menu-horizontal-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .is-habis .menu-horizontal-img { filter: grayscale(0.95) brightness(0.7); }
+        .habis-overlay-horizontal {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .is-habis .habis-overlay-horizontal { display: flex; }
+        .price-tag-horizontal {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.94);
+            backdrop-filter: blur(8px);
+            padding: 0.4rem 0.9rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--primary);
+        }
+        .menu-horizontal-info {
+            padding: 0.9rem 0.8rem;
+            text-align: center;
+        }
+        .menu-horizontal-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.4rem;
+            white-space: normal;
+            height: 2.6em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
 
-        .cart-bar { position: fixed; bottom: 90px; left: 20px; right: 20px; background: var(--primary-deep); color: white; padding: 15px 25px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 998; display: none; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        .whatsapp-float { position: fixed; bottom: 160px; right: 20px; width: 55px; height: 55px; background: #25d366; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 997; text-decoration: none; }
-        .pay-info-box { background: #fff3cd; border: 1px dashed #ffc107; border-radius: 15px; padding: 12px; margin-top: 10px; font-size: 13px; }
-        #map { height: 200px; width: 100%; border-radius: 15px; margin-bottom: 15px; border: 1px solid #ddd; z-index: 1; }
+        .cart-floating {
+            position: fixed;
+            bottom: 85px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-radius: 1.2rem;
+            padding: 0.6rem 1.2rem;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px rgba(13,148,136,0.4);
+            z-index: 998;
+            cursor: pointer;
+            min-width: 200px;
+            max-width: 80%;
+            border: 1.5px solid rgba(255,255,255,0.2);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            backdrop-filter: blur(14px);
+            border-top: 1px solid var(--border);
+            border-radius: 1.8rem 1.8rem 0 0;
+            padding: 0.8rem 0;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
+            z-index: 999;
+            display: flex;
+        }
+        .nav-item-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.6rem 0;
+            transition: all 0.25s;
+        }
+        .nav-item-btn.active {
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+        .nav-item-btn i { font-size: 1.45rem; margin-bottom: 0.35rem; display: block; }
+
+        .fab-wa-diskon {
+            position: fixed; bottom: 140px; right: 20px; z-index: 3000;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .wa-main-btn {
+            position: relative; width: 50px; height: 50px; background: #fff; 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.3); z-index: 10; cursor: pointer;
+            animation: pulse-wa 2s infinite;
+        }
+        @keyframes pulse-wa {
+            0% { box-shadow: 0 0 0 0px rgba(37, 211, 102, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+            100% { box-shadow: 0 0 0 0px rgba(37, 211, 102, 0); }
+        }
+        .wa-main-btn i { color: #25D366; font-size: 28px; }
+        .badge-notif {
+            position: absolute; top: -5px; right: -5px; background: #ff4757;
+            color: white; border-radius: 50%; width: 22px; height: 22px;
+            font-size: 11px; font-weight: 800; display: flex; align-items: center;
+            justify-content: center; border: 2px solid #fff; z-index: 15;
+        }
+        .label-admin {
+            position: absolute; right: 65px; background: white; color: #333;
+            padding: 8px 16px; border-radius: 12px; font-weight: 800; font-size: 11px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); white-space: nowrap;
+        }
+
+        .receipt-paper {
+            background: #fdfdfd;
+            padding: 1.4rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.94rem;
+            line-height: 1.4;
+            border: 1px dashed #d1d5db;
+            border-radius: 0.8rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .receipt-header { text-align: center; border-bottom: 1px dashed #d1d5db; padding-bottom: 0.8rem; margin-bottom: 0.8rem; }
+        .receipt-item { display: flex; justify-content: space-between; margin: 0.4rem 0; }
+        .receipt-total { font-weight: 700; font-size: 1.1rem; }
+
+        .header-carousel {
+            margin: 0 1.25rem 1.5rem;
+            border-radius: 1.2rem;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
+        .carousel-item img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+        }
+        .carousel-caption {
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            left: 0; right: 0; bottom: 0;
+            padding: 10px 10px 8px;
+            text-align: left; padding-left: 15px;
+        }
+        .carousel-caption h6 { font-size: 0.85rem; margin-bottom: 1px; font-weight: 700; }
+        .carousel-caption p { font-size: 0.7rem; margin-bottom: 0; opacity: 0.9; }
     </style>
 </head>
 <body>
 
-    <div id="auth-screen">
-        <div class="glass-card animate__animated animate__zoomIn">
-            <div class="text-center mb-4">
-                <div class="bg-primary text-white rounded-4 d-inline-block p-3 mb-3"><i class="fas fa-store fa-2x"></i></div>
-                <h4 class="fw-bold">LESEHAN MACCA</h4>
-                <p class="animate__animated animate__fadeInUp animate__delay-1s" 
-   style="font-size: 14px; color: #004aad; font-weight: 600; font-style: italic; margin-top: -5px; margin-bottom: 20px;">
-   "Citarasa Autentik, Pesan Mudah dari Mana Saja"
-</p>
+    <<div id="auth-screen" style="display: none;">
+    <div class="auth-card animate__animated animate__zoomIn">
+        <div class="text-center mb-4">
+            <div class="bg-white text-primary rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-3 shadow" style="width:85px;height:85px;">
+                <i class="fas fa-utensils fa-2x"></i>
             </div>
-            <div class="mb-3">
-                <label class="small fw-bold text-muted">Nama Lengkap</label>
-                <input type="text" id="waNama" class="form-control rounded-pill px-3" placeholder="Contoh: Lesehan Macca">
-            </div>
-            <div class="mb-4">
-                <label class="small fw-bold text-muted">Nomor WhatsApp</label>
-                <input type="number" id="waNomor" class="form-control rounded-pill px-3" placeholder="Contoh: 08123456789">
-            </div>
-            <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold" onclick="handleWaLogin()">MULAI PESAN</button>
+            <h4 class="fw-bold mb-1">Login / Daftar</h4>
+            <p class="text-muted small mb-0" style="font-style:italic;">Masuk dulu biar bisa pesan ya!</p>
         </div>
+        <div class="mb-3">
+            <label class="small fw-semibold text-muted">Nama Lengkap</label>
+            <input type="text" id="waNama" class="form-control rounded-pill px-4 py-2.5" placeholder="Contoh: Andi Saputra">
+        </div>
+        <div class="mb-4">
+            <label class="small fw-semibold text-muted">Nomor WhatsApp</label>
+            <input type="number" id="waNomor" class="form-control rounded-pill px-4 py-2.5" placeholder="08123456789">
+        </div>
+        <button class="btn btn-primary w-100 rounded-pill py-3 fw-bold" onclick="handleWaLogin()">MULAI PESAN</button>
     </div>
+</div>
 
     <div id="main-app" style="display:none;">
         <div id="view-home">
-            <div class="header-lux">
-                <div class="d-flex justify-content-between align-items-center">
+            <div class="header-main">
+                <div class="d-flex justify-content-between align-items-center mb-3">
                     <div>
-                        <p class="mb-0 opacity-75 small">Lokasi Anda</p>
-                        <h6 class="fw-bold"><i class="fas fa-map-marker-alt text-warning me-1"></i> Makassar, Indonesia</h6>
+                        <p class="mb-0 small opacity-75"><i class="fas fa-map-marker-alt text-warning me-1"></i> Makassar, ID</p>
+                        <h5 class="fw-bold mb-0">Halo, <span id="userDisplay">Pelanggan</span>!</h5>
                     </div>
                     <div class="bg-white bg-opacity-25 rounded-circle p-2"><i class="fas fa-bell"></i></div>
                 </div>
-                <h4 class="mt-4 fw-bold">Halo, <span id="userDisplay">Pelanggan</span>!</h4>
+
                 <div class="search-box">
                     <i class="fas fa-search text-muted"></i>
-                    <input type="text" placeholder="Cari menu favorit..." onkeyup="searchMenu(this.value)">
+                    <input type="text" class="border-0 flex-grow-1 outline-0 bg-transparent" placeholder="Cari menu favorit..." onkeyup="searchMenu(this.value)">
                 </div>
             </div>
 
-            <div style="margin-top: 40px;">
-                <div class="promo-scroll px-3">
-                    <div class="promo-card promo-1">
+            <div style="margin-top: 4.5rem;">
+                <div class="px-4 mb-3"><h6 class="fw-bold"><i class="fas fa-info-circle text-primary me-1"></i> Info Terbaru</h6></div>
+                <div class="scroll-container mb-4">
+                    <div class="promo-card" style="background-image:url('https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=800&q=80');">
                         <h6 class="fw-bold mb-1">Diskon 20%</h6>
                         <p class="small mb-0">Khusus pengguna baru!</p>
-                        <i class="fas fa-percentage position-absolute opacity-25" style="font-size: 80px; bottom: -10px; right: -10px;"></i>
                     </div>
-                    <div class="promo-card promo-2">
+                    <div class="promo-card" style="background-image:url('https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80');">
                         <h6 class="fw-bold mb-1">Gratis Ongkir</h6>
                         <p class="small mb-0">Min. belanja Rp 50rb</p>
-                        <i class="fas fa-motorcycle position-absolute opacity-25" style="font-size: 80px; bottom: -10px; right: -10px;"></i>
                     </div>
                 </div>
 
-                <div class="px-3 mt-4"><h6 class="fw-bold"><i class="fas fa-fire text-danger me-1"></i> Terlaris</h6></div>
-                <div class="best-seller-wrapper px-3" id="bestSellerGrid"></div>
+                <div class="px-4 mb-3"><h6 class="fw-bold"><i class="fas fa-fire text-danger me-1"></i> Terlaris</h6></div>
+                <div class="scroll-container mb-4" id="bestSellerGrid"></div>
 
-                <div class="px-3 mt-4"><h6 class="fw-bold">Kategori</h6></div>
-                <div class="category-wrapper px-3 mb-2" id="catList"></div>
-
-                <div class="container">
-                    <div class="row g-3" id="menuGrid"></div>
+                <div id="productSlider" class="carousel slide header-carousel" data-bs-ride="carousel">
+                    <div class="carousel-inner" id="carouselContent"></div>
                 </div>
+
+                <div id="categoriesSections"></div>
             </div>
         </div>
 
         <div id="view-orders" style="display: none;">
-            <div class="p-3 bg-white border-bottom text-center"><h5 class="fw-bold mb-0">Pesanan Saya</h5></div>
-            <div class="container mt-3" id="orderHistoryList"></div>
+            <div class="p-4 bg-white border-bottom text-center"><h5 class="fw-bold mb-0">Pesanan Saya</h5></div>
+            <div class="container mt-4" id="orderHistoryList"></div>
         </div>
 
         <div id="view-profile" style="display: none;">
             <div class="p-4 text-center bg-white border-bottom">
                 <div class="position-relative d-inline-block">
-                    <img src="" id="profImg" class="rounded-circle border shadow-sm" style="width:100px; height:100px; object-fit:cover;">
-                    <label for="imgInp" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 border border-white" style="cursor:pointer;"><i class="fas fa-camera fa-xs"></i></label>
+                    <img src="" id="profImg" class="rounded-circle border shadow" style="width:120px;height:120px;object-fit:cover;">
+                    <label for="imgInp" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 border border-white" style="cursor:pointer;">
+                        <i class="fas fa-camera fa-xs"></i>
+                    </label>
                     <input type="file" id="imgInp" hidden onchange="uploadAvatar(this)">
                 </div>
-                <h5 class="fw-bold mt-3 mb-0" id="profNama">Nama</h5>
-                <p class="text-muted small" id="profEmail">WhatsApp User</p>
+                <h5 class="fw-bold mt-3 mb-1" id="profNama">Nama</h5>
+                <p class="text-muted small mb-0" id="profEmail">WhatsApp User</p>
             </div>
-            <div class="container mt-3">
-                <div class="card p-3 border-0 rounded-4 shadow-sm">
-                    <label class="small fw-bold text-muted">Nomor WA</label>
-                    <input type="number" id="upWA" class="form-control border-0 bg-light mb-3" readonly>
-                    
+            <div class="container mt-4">
+                <div class="card border-0 rounded-4 shadow p-4">
+                    <label class="small fw-semibold text-muted">Nomor WA</label>
+                    <input type="number" id="upWA" class="form-control bg-light border-0 mb-4" readonly>
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label class="small fw-bold text-muted mb-0">Titik Lokasi (Maps)</label>
-                        <button class="btn btn-sm btn-outline-primary py-0" onclick="getLocation()" style="font-size: 10px;">GPS SAYA</button>
+                        <label class="small fw-semibold text-muted">Titik Lokasi (Maps)</label>
+                        <button class="btn btn-sm btn-outline-primary" onclick="getLocation()">GPS SAYA</button>
                     </div>
-                    <div id="map"></div>
+                    <div id="map" style="height:220px;border-radius:1rem;"></div>
                     <input type="hidden" id="upLat">
                     <input type="hidden" id="upLng">
-
-                    <label class="small fw-bold text-muted">Alamat Lengkap / Patokan</label>
-                    <textarea id="upAlamat" class="form-control border-0 bg-light mb-3" rows="3" placeholder="Nama Jalan, Blok, atau Patokan Rumah"></textarea>
-                    
-                    <button class="btn btn-primary w-100 rounded-pill fw-bold" onclick="saveProfile()">Simpan Profil</button>
-                    <button class="btn btn-link text-danger w-100 mt-2" onclick="handleLogout()">Logout</button>
+                    <label class="small fw-semibold text-muted mt-4">Alamat Lengkap / Patokan</label>
+                    <textarea id="upAlamat" class="form-control bg-light border-0 mb-4" rows="3" placeholder="Nama jalan, blok, atau patokan rumah"></textarea>
+                    <button class="btn btn-primary w-100 rounded-pill py-3 fw-bold" onclick="saveProfile()">Simpan Profil</button>
+                    <button class="btn btn-link text-danger w-100 mt-3" onclick="handleLogout()">Logout</button>
                 </div>
             </div>
         </div>
 
-        <a href="https://wa.me/6282191262682" class="whatsapp-float animate__animated animate__bounceIn" target="_blank"><i class="fab fa-whatsapp"></i></a>
+        <div class="fab-wa-diskon" onclick="window.open('https://wa.me/6282191262682', '_blank')">
+            <span class="label-admin">CHAT ADMIN</span>
+            <div class="wa-main-btn">
+                <div class="badge-notif">1</div>
+                <i class="fa-brands fa-whatsapp"></i>
+            </div>
+        </div>
 
-        <div class="cart-bar animate__animated animate__fadeInUp" id="cartBar" onclick="processCheckout()">
-            <div class="d-flex align-items-center"><div class="bg-white text-primary rounded-pill px-3 fw-bold me-2" id="cartQty">0</div><span class="small fw-bold">Checkout Pesanan</span></div>
-            <div id="cartTotal" class="fw-bold">Rp 0</div>
+        <div class="cart-floating animate__animated animate__fadeInUp" id="cartBar" onclick="processCheckout()">
+            <div class="d-flex align-items-center gap-2">
+                <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width:28px; height:28px; font-size:12px;" id="cartQty">0</div>
+                <span class="fw-bold" style="font-size: 14px;">Checkout</span>
+            </div>
+            <div class="vr bg-white opacity-25" style="height: 20px;"></div>
+            <div id="cartTotal" class="fw-bold" style="font-size: 14px;">Rp 0</div>
         </div>
 
         <div class="bottom-nav">
@@ -186,363 +455,427 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, get, onValue, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, get, onValue, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBWz63o_JFK3Ucvb7IuXI1cNO8SXMHvsEA",
-            authDomain: "kasirmaccanew.firebaseapp.com",
-            databaseURL: "https://kasirmaccanew-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "kasirmaccanew"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyBWz63o_JFK3Ucvb7IuXI1cNO8SXMHvsEA",
+        authDomain: "kasirmaccanew.firebaseapp.com",
+        databaseURL: "https://kasirmaccanew-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "kasirmaccanew"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-        const TOKO_LAT = -5.2039023; 
-        const TOKO_LNG = 119.5002886;
-        const TARIF_PER_KM = 2000;    
-        const MIN_ONGKIR = 5000;      
-        const MIN_BELANJA_FREE = 50000;
+    const TOKO_LAT = -5.2039023; 
+    const TOKO_LNG = 119.5002886;
+    const TARIF_PER_KM = 2000;    
+    const MIN_ONGKIR = 5000;      
+    const MIN_BELANJA_FREE = 50000;
 
-        let userData = null;
-        let masterMenu = [];
-        let cart = [];
-        let map, marker;
+    let userData = null;
+    let masterMenu = [];
+    let cart = [];
+    let map, marker;
 
-        // --- FUNGSI GLOBAL ---
-        function hitungJarak(lat1, lon1, lat2, lon2) {
-            const R = 6371; 
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c; 
+    function hitungJarak(lat1, lon1, lat2, lon2) {
+        const R = 6371; 
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c; 
+    }
+
+    window.handleWaLogin = async () => {
+        const nama = document.getElementById('waNama').value.trim();
+        const wa = document.getElementById('waNomor').value.trim();
+        if(!nama || !wa) return Swal.fire('Error', 'Nama dan WA harus diisi', 'error');
+
+        const userId = 'user_' + wa;
+        const userRef = ref(db, `users/${userId}`);
+        const snap = await get(userRef);
+        
+        if(snap.exists()) {
+            userData = snap.val();
+        } else {
+            userData = { uid: userId, nama, wa, alamat: '', lat: -5.1476, lng: 119.4327, avatar: '' };
+            await set(userRef, userData);
         }
+        localStorage.setItem('user_lamacca', JSON.stringify(userData));
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('userDisplay').innerText = userData.nama || 'Pelanggan';
+        Swal.fire('Sukses', 'Selamat datang! Silakan lanjut pesan.', 'success');
+        checkAuth();  // refresh tampilan
+    };
 
-        window.handleWaLogin = async () => {
-            const nama = document.getElementById('waNama').value;
-            const wa = document.getElementById('waNomor').value;
-            if(!nama || !wa) return Swal.fire('Error', 'Nama dan WA harus diisi', 'error');
+    window.handleLogout = () => {
+        localStorage.removeItem('user_lamacca');
+        userData = null;
+        location.reload();
+    };
 
-            const userId = 'user_' + wa;
-            const userRef = ref(db, `users/${userId}`);
-            const snap = await get(userRef);
-            
-            if(snap.exists()) {
-                userData = snap.val();
-            } else {
-                userData = { uid: userId, nama, wa, alamat: '', lat: -5.1476, lng: 119.4327, avatar: '' };
-                await set(userRef, userData);
-            }
-            localStorage.setItem('user_lamacca', JSON.stringify(userData));
-            checkAuth();
-        };
-
-        window.handleLogout = () => {
-            localStorage.removeItem('user_lamacca');
-            location.reload();
-        };
-
-        window.initMap = (lat, lng) => {
-            if (map) {
-                map.setView([lat, lng], 15);
-                marker.setLatLng([lat, lng]);
-                return;
-            }
-            map = L.map('map').setView([lat, lng], 15);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            marker = L.marker([lat, lng], {draggable: true}).addTo(map);
-            marker.on('dragend', () => {
-                const pos = marker.getLatLng();
-                document.getElementById('upLat').value = pos.lat;
-                document.getElementById('upLng').value = pos.lng;
+    // Fungsi untuk memaksa login sebelum action tertentu
+    window.requireLogin = (callback) => {
+        if (userData) {
+            callback();  // sudah login, lanjut
+        } else {
+            // Tampilkan auth-screen sebagai popup
+            document.getElementById('auth-screen').style.display = 'flex';
+            Swal.fire({
+                title: 'Login Dulu Ya',
+                text: 'Agar bisa pesan, login pakai nama & WA dulu.',
+                icon: 'info',
+                showConfirmButton: false,
+                allowOutsideClick: false
             });
-        };
+        }
+    };
 
-        window.getLocation = () => {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((p) => {
-                    const lat = p.coords.latitude, lng = p.coords.longitude;
-                    window.initMap(lat, lng);
-                    document.getElementById('upLat').value = lat;
-                    document.getElementById('upLng').value = lng;
-                }, () => Swal.fire('Info', 'Aktifkan GPS Anda', 'info'));
-            }
-        };
+    window.initMap = (lat, lng) => {
+        if (map) {
+            map.setView([lat, lng], 15);
+            marker.setLatLng([lat, lng]);
+            return;
+        }
+        map = L.map('map').setView([lat, lng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '' }).addTo(map);
+        marker = L.marker([lat, lng], {draggable: true}).addTo(map);
+        marker.on('dragend', () => {
+            const pos = marker.getLatLng();
+            document.getElementById('upLat').value = pos.lat;
+            document.getElementById('upLng').value = pos.lng;
+        });
+    };
 
-        window.switchView = (view) => {
-            ['home', 'orders', 'profile'].forEach(v => {
-                const el = document.getElementById('view-'+v);
-                if(el) el.style.display = v === view ? 'block' : 'none';
-            });
-            document.querySelectorAll('.nav-item-btn').forEach(b => b.classList.remove('active'));
-            const btn = document.getElementById('btn-' + view);
-            if(btn) btn.classList.add('active');
-            if(view === 'orders') loadOrderHistory();
-            if(view === 'profile') loadProfile();
-        };
+    window.getLocation = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((p) => {
+                const lat = p.coords.latitude, lng = p.coords.longitude;
+                window.initMap(lat, lng);
+                document.getElementById('upLat').value = lat;
+                document.getElementById('upLng').value = lng;
+            }, () => Swal.fire('Info', 'Aktifkan GPS Anda', 'info'));
+        }
+    };
 
-        window.addToCart = (id) => {
+    window.switchView = (view) => {
+        ['home', 'orders', 'profile'].forEach(v => {
+            const el = document.getElementById('view-'+v);
+            if(el) el.style.display = v === view ? 'block' : 'none';
+        });
+        document.querySelectorAll('.nav-item-btn').forEach(b => b.classList.remove('active'));
+        const btn = document.getElementById('btn-' + view);
+        if(btn) btn.classList.add('active');
+        if(view === 'orders') loadOrderHistory();
+        if(view === 'profile') loadProfile();
+    };
+
+    window.addToCart = (id) => {
+        window.requireLogin(() => {
             const item = masterMenu.find(m => m.id === id);
             if(!item || item.status === 'Habis') return;
             const inCart = cart.find(c => c.id === id);
             inCart ? inCart.qty++ : cart.push({...item, qty: 1});
             updateCartUI();
-        };
+        });
+    };
 
-        window.saveProfile = () => {
-            const up = { 
-                alamat: document.getElementById('upAlamat').value,
-                lat: parseFloat(document.getElementById('upLat').value), 
-                lng: parseFloat(document.getElementById('upLng').value)
+    window.saveProfile = () => {
+        const up = { 
+            alamat: document.getElementById('upAlamat').value.trim(),
+            lat: parseFloat(document.getElementById('upLat').value), 
+            lng: parseFloat(document.getElementById('upLng').value)
+        };
+        if (isNaN(up.lat) || isNaN(up.lng)) return Swal.fire('Error', 'Lokasi belum valid', 'error');
+        update(ref(db, `users/${userData.uid}`), up).then(() => {
+            Swal.fire('Sukses', 'Profil Diupdate', 'success');
+            userData = {...userData, ...up};
+            localStorage.setItem('user_lamacca', JSON.stringify(userData));
+        });
+    };
+
+    window.uploadAvatar = (input) => {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                update(ref(db, `users/${userData.uid}`), { avatar: e.target.result }).then(() => {
+                    document.getElementById('profImg').src = e.target.result;
+                });
             };
-            update(ref(db, `users/${userData.uid}`), up).then(() => {
-                Swal.fire('Sukses', 'Profil Diupdate', 'success');
-                userData = {...userData, ...up};
-                localStorage.setItem('user_lamacca', JSON.stringify(userData));
-            });
-        };
+            reader.readAsDataURL(input.files[0]);
+        }
+    };
 
-        window.uploadAvatar = (input) => {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => update(ref(db, `users/${userData.uid}`), { avatar: e.target.result }).then(() => { document.getElementById('profImg').src = e.target.result; });
-                reader.readAsDataURL(input.files[0]);
+    window.searchMenu = (val) => {
+        Swal.fire('Info', 'Pencarian sementara dinonaktifkan di layout baru ini.', 'info');
+    };
+
+    window.updatePayInfo = (t) => {
+        const b = document.getElementById('pay-info-box');
+        if (!b) return; 
+        if(t==='COD') {
+            b.innerHTML = '<div class="animate__animated animate__fadeIn"><i class="fas fa-hand-holding-usd me-1 text-success"></i> Bayar tunai saat pesanan tiba.</div>';
+        } else if(t==='BANK') {
+            b.innerHTML = '<div class="animate__animated animate__fadeIn"><i class="fas fa-university me-1 text-primary"></i> BRI: 0403 0101 2546 539 <br>A/N SULKIFLI</div>';
+        } else if(t==='QRIS') {
+            b.innerHTML = `<div class="animate__animated animate__fadeIn text-center mt-2"><p class="mb-2 fw-bold" style="font-size:12px;">Scan QRIS Lesehan Lamacca:</p><img src="https://chuacarangki.github.io/toko_macca_kasir/qrismacca.jpeg" class="img-fluid rounded border shadow-sm p-2 bg-white" style="width: 180px; height: auto;"><p class="mt-2 mb-0 fw-bold text-danger" style="font-size:10px;"><i class="fas fa-info-circle"></i> Screenshot & kirim bukti ke WA</p></div>`;
+        }
+    };
+
+    function checkAuth() {
+        const savedUser = localStorage.getItem('user_lamacca');
+        if(savedUser) {
+            userData = JSON.parse(savedUser);
+            document.getElementById('userDisplay').innerText = userData.nama || 'Pelanggan';
+        }
+        // Selalu tampilkan main-app, auth-screen hanya dipanggil saat butuh
+        document.getElementById('main-app').style.display = 'block';
+        document.getElementById('auth-screen').style.display = 'none';
+        loadMenuData();
+        listenToOrderStatus();
+    }
+
+    function loadMenuData() {
+        onValue(ref(db, 'master_menu'), (snap) => {
+            masterMenu = [];
+            if(snap.exists()) {
+                Object.keys(snap.val()).forEach(k => masterMenu.push({id: k, ...snap.val()[k]}));
+                renderBestSeller(); 
+                renderImageSlider();
+                renderCategorySections();
             }
-        };
+        });
+    }
 
-        window.searchMenu = (val) => {
-            const filtered = masterMenu.filter(m => m.name.toLowerCase().includes(val.toLowerCase()));
-            renderMenuByData(filtered);
-        };
-
-        window.renderMenu = (cat, el) => {
-            if(el) { document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active')); el.classList.add('active'); }
-            const filtered = cat === 'Semua' ? masterMenu : masterMenu.filter(m => m.category === cat);
-            renderMenuByData(filtered);
-        };
-
-        window.toggleOngkir = (isAntar, ongkir, belanja) => {
-            const row = document.getElementById('row-ongkir');
-            if(row) row.style.opacity = isAntar ? '1' : '0.3';
-            const totalDisplay = document.getElementById('text-total');
-            if(totalDisplay) totalDisplay.innerText = 'Rp ' + (belanja + (isAntar ? ongkir : 0)).toLocaleString();
-        };
-
-        window.updatePayInfo = (t) => {
-            const b = document.getElementById('pay-info-box');
-            if(!b) return;
-            if(t==='COD') {
-                b.innerHTML = '<div class="animate__animated animate__fadeIn"><i class="fas fa-hand-holding-usd me-1 text-success"></i> Bayar tunai saat pesanan tiba.</div>';
-            } else if(t==='BANK') {
-                b.innerHTML = '<div class="animate__animated animate__fadeIn"><i class="fas fa-university me-1 text-primary"></i> BRI: 0403 0101 2546 539 <br>A/N SULKIFLI</div>';
-            } else if(t==='QRIS') {
-                b.innerHTML = `
-                    <div class="animate__animated animate__fadeIn text-center mt-2">
-                        <p class="mb-2 fw-bold" style="font-size:12px;">Scan QRIS Lesehan Lamacca:</p>
-                        <img src="https://chuacarangki.github.io/toko_macca_kasir/qrismacca.jpeg" 
-                             class="img-fluid rounded border shadow-sm p-2 bg-white" 
-                             style="width: 180px; height: auto;">
-                        <p class="mt-2 mb-0 fw-bold text-danger" style="font-size:10px;">
-                            <i class="fas fa-info-circle"></i> Screenshot & kirim bukti ke WA
-                        </p>
-                    </div>`;
+    async function loadProfile() {
+        const snap = await get(ref(db, `users/${userData.uid}`));
+        const u = snap.val() || {};
+        document.getElementById('profNama').innerText = u.nama || 'Nama';
+        document.getElementById('profImg').src = u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.nama || 'User')}&background=0d9488&color=fff`;
+        document.getElementById('upWA').value = u.wa || '';
+        document.getElementById('upAlamat').value = u.alamat || '';
+        const lt = u.lat || -5.1476, lg = u.lng || 119.4327;
+        document.getElementById('upLat').value = lt;
+        document.getElementById('upLng').value = lg;
+        setTimeout(() => {
+            if (document.getElementById('view-profile').style.display !== 'none') {
+                window.initMap(lt, lg);
+                if (map) map.invalidateSize();
             }
-        };
+        }, 800);
+    }
 
-        // --- INTERNAL FUNCTIONS ---
-        function checkAuth() {
-            const savedUser = localStorage.getItem('user_lamacca');
-            if(savedUser) {
-                userData = JSON.parse(savedUser);
-                document.getElementById('userDisplay').innerText = userData.nama;
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('main-app').style.display = 'block';
-                loadMenuData();
-                listenToOrderStatus(); // AKTIFKAN NOTIFIKASI
-            } else {
-                document.getElementById('auth-screen').style.display = 'flex';
-                document.getElementById('main-app').style.display = 'none';
-            }
+    function updateCartUI() {
+        const bar = document.getElementById('cartBar');
+        if(cart.length > 0) {
+            bar.style.display = 'flex';
+            document.getElementById('cartQty').innerText = cart.reduce((a,b) => a + b.qty, 0);
+            document.getElementById('cartTotal').innerText = 'Rp ' + cart.reduce((a,b) => a + (b.qty * b.price), 0).toLocaleString();
+        } else {
+            bar.style.display = 'none';
         }
+    }
 
-        function loadMenuData() {
-            onValue(ref(db, 'master_menu'), (snap) => {
-                masterMenu = [];
-                if(snap.exists()) {
-                    Object.keys(snap.val()).forEach(k => masterMenu.push({id: k, ...snap.val()[k]}));
-                    renderBestSeller(); renderCategories(); window.renderMenu('Semua');
-                }
-            });
-        }
+    function renderBestSeller() {
+        const best = masterMenu.filter(m => m.status !== 'Habis').slice(0, 6);
+        document.getElementById('bestSellerGrid').innerHTML = best.map(m => `
+            <div class="best-card" onclick="addToCart('${m.id}')">
+                <img src="${m.image || 'https://via.placeholder.com/150'}" style="height:115px;object-fit:cover;">
+                <div class="small fw-semibold text-truncate px-2 mt-2">${m.name}</div>
+                <div class="text-primary fw-bold small mb-2">Rp ${parseInt(m.price).toLocaleString()}</div>
+            </div>`).join('');
+    }
 
-        async function loadProfile() {
-            const snap = await get(ref(db, `users/${userData.uid}`));
-            const u = snap.val();
-            document.getElementById('profNama').innerText = u.nama;
-            document.getElementById('profImg').src = u.avatar || `https://ui-avatars.com/api/?name=${u.nama}&background=004aad&color=fff`;
-            document.getElementById('upWA').value = u.wa;
-            document.getElementById('upAlamat').value = u.alamat || '';
-            const lt = u.lat || -5.1476, lg = u.lng || 119.4327;
-            document.getElementById('upLat').value = lt;
-            document.getElementById('upLng').value = lg;
-            setTimeout(() => { window.initMap(lt, lg); map.invalidateSize(); }, 500);
-        }
+    function renderCategorySections() {
+        const container = document.getElementById('categoriesSections');
+        if (!container || masterMenu.length === 0) return;
 
-        function updateCartUI() {
-            const bar = document.getElementById('cartBar');
-            if(cart.length > 0) {
-                bar.style.display = 'flex';
-                document.getElementById('cartQty').innerText = cart.reduce((a,b) => a + b.qty, 0);
-                document.getElementById('cartTotal').innerText = 'Rp ' + cart.reduce((a,b) => a + (b.qty * b.price), 0).toLocaleString();
-            } else bar.style.display = 'none';
-        }
+        const categories = [...new Set(masterMenu.map(m => m.category).filter(Boolean))];
 
-        function renderBestSeller() {
-            const best = masterMenu.filter(m => m.status !== 'Habis').slice(0, 6);
-            document.getElementById('bestSellerGrid').innerHTML = best.map(m => `
-                <div class="best-card" onclick="addToCart('${m.id}')">
-                    <img src="${m.image || 'https://via.placeholder.com/150'}">
-                    <div class="small fw-bold text-truncate">${m.name}</div>
-                    <div class="text-primary fw-bold" style="font-size:11px;">Rp ${parseInt(m.price).toLocaleString()}</div>
-                </div>`).join('');
-        }
+        let html = '';
+        categories.forEach(cat => {
+            const items = masterMenu.filter(m => m.category === cat);
+            if (items.length === 0) return;
 
-        function renderCategories() {
-            const cats = ['Semua', ...new Set(masterMenu.map(m => m.category))];
-            document.getElementById('catList').innerHTML = cats.map(c => `<button class="cat-pill ${c==='Semua'?'active':''}" onclick="renderMenu('${c}', this)">${c}</button>`).join('');
-        }
-
-        function renderMenuByData(data) {
-            document.getElementById('menuGrid').innerHTML = data.map(m => {
-                const isHabis = m.status === 'Habis';
-                return `<div class="col-6">
-                    <div class="menu-card ${isHabis ? 'is-habis' : ''}" onclick="${isHabis ? '' : `addToCart('${m.id}')`}">
-                        <div class="menu-img-container">
-                            <img src="${m.image || 'https://via.placeholder.com/150'}" class="menu-img">
-                            <div class="habis-overlay"><span class="badge bg-danger">HABIS</span></div>
-                            <div class="price-tag">Rp ${parseInt(m.price).toLocaleString()}</div>
-                        </div>
-                        <div class="p-3 text-center">
-                            <div class="fw-bold small text-truncate mb-2">${m.name}</div>
-                            <button class="btn btn-primary btn-sm w-100 rounded-pill fw-bold" ${isHabis ? 'disabled' : ''}>${isHabis ? 'HABIS' : 'TAMBAH'}</button>
-                        </div>
+            html += `
+                <div class="category-section">
+                    <h5 class="category-title">${cat}</h5>
+                    <div class="category-scroll">
+                        ${items.map(m => {
+                            const isHabis = m.status === 'Habis';
+                            return `
+                                <div class="menu-horizontal-card ${isHabis ? 'is-habis' : ''}" 
+                                     onclick="${isHabis ? '' : `addToCart('${m.id}')`}">
+                                    <div class="menu-horizontal-img-container">
+                                        <img src="${m.image || 'https://via.placeholder.com/300x200'}" class="menu-horizontal-img" alt="${m.name}">
+                                        <div class="habis-overlay-horizontal"><span class="badge bg-danger fs-5">HABIS</span></div>
+                                        <div class="price-tag-horizontal">Rp ${parseInt(m.price).toLocaleString()}</div>
+                                    </div>
+                                    <div class="menu-horizontal-info">
+                                        <div class="menu-horizontal-name">${m.name}</div>
+                                        <button class="btn btn-primary btn-sm w-100 rounded-pill fw-bold mt-2" ${isHabis ? 'disabled' : ''}>
+                                            ${isHabis ? 'HABIS' : 'TAMBAH'}
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
-                </div>`;
-            }).join('');
-        }
+                </div>
+            `;
+        });
 
-        function loadOrderHistory() {
-            onValue(ref(db, 'pesanan_masuk'), (snap) => {
-                const list = document.getElementById('orderHistoryList'); list.innerHTML = '';
-                if(snap.exists()) {
-                    const myOrders = Object.keys(snap.val()).map(k => ({id:k, ...snap.val()[k]})).filter(o => o.uid === userData.uid).sort((a,b) => b.timestamp - a.timestamp);
-                    myOrders.forEach(o => {
-                        list.innerHTML += `<div class="card p-3 border-0 rounded-4 shadow-sm mb-3 animate__animated animate__fadeIn">
-                            <div class="d-flex justify-content-between small"><span class="text-muted">${o.waktu}</span><span class="badge bg-primary">${o.status}</span></div>
-                            <div class="fw-bold mt-2">${o.items.map(i => i.name+' x'+i.qty).join(', ')}</div>
+        container.innerHTML = html;
+    }
+
+    function renderImageSlider() {
+        const carouselContent = document.getElementById('carouselContent');
+        if (!carouselContent || masterMenu.length === 0) return;
+        const sliderItems = masterMenu.filter(m => m.status !== 'Habis').sort(() => 0.5 - Math.random()).slice(0, 5);
+        carouselContent.innerHTML = sliderItems.map((item, index) => `
+            <div class="carousel-item ${index === 0 ? 'active' : ''}" data-bs-interval="3000">
+                <img src="${item.image || 'https://via.placeholder.com/400x200'}" class="d-block w-100" alt="${item.name}">
+                <div class="carousel-caption">
+                    <h6 class="text-white">${item.name}</h6>
+                    <p class="text-white-50">Rp ${parseInt(item.price).toLocaleString()} • Promo</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.loadOrderHistory = () => {
+        onValue(ref(db, 'pesanan_masuk'), (snap) => {
+            const list = document.getElementById('orderHistoryList'); 
+            list.innerHTML = '';
+            if(snap.exists()) {
+                const myOrders = Object.keys(snap.val())
+                    .map(k => ({id:k, ...snap.val()[k]}))
+                    .filter(o => o.uid === userData?.uid)
+                    .sort((a,b) => b.timestamp - a.timestamp);
+                myOrders.forEach(o => {
+                    const orderData = JSON.stringify(o).replace(/"/g, '&quot;');
+                    list.innerHTML += `
+                    <div class="card border-0 rounded-4 shadow-sm p-3 mb-3">
+                        <div class="d-flex justify-content-between small mb-2">
+                            <span class="text-muted">${o.waktu}</span>
+                            <span class="badge bg-primary">${o.status}</span>
+                        </div>
+                        <div class="fw-semibold">${o.items.map(i => i.name+' ×'+i.qty).join(', ')}</div>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
                             <div class="text-primary fw-bold">Rp ${o.total_bayar.toLocaleString()}</div>
-                        </div>`;
-                    });
-                }
-            });
-        }
-
-        // --- PROSES CHECKOUT ---
-        window.processCheckout = async () => {
-            const uSnap = await get(ref(db, `users/${userData.uid}`));
-            const profile = uSnap.val();
-
-            if (!profile.lat || !profile.lng || !profile.alamat) {
-                return Swal.fire({
-                    title: 'Lengkapi Profil',
-                    text: 'Silakan isi Alamat & Titik Lokasi di menu Profil agar kami bisa menghitung ongkir.',
-                    icon: 'warning',
-                    confirmButtonText: 'Ke Profil',
-                    confirmButtonColor: '#004aad'
-                }).then(() => switchView('profile'));
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="viewDigitalReceipt('${orderData}')">
+                                <i class="fas fa-file-invoice me-1"></i> Struk
+                            </button>
+                        </div>
+                    </div>`;
+                });
             }
+        });
+    };
+
+    window.viewDigitalReceipt = (orderJson) => {
+        const o = typeof orderJson === 'string' ? JSON.parse(orderJson) : orderJson;
+        let itemsHtml = o.items.map(i => `<div class="receipt-item"><span>${i.name} (×${i.qty})</span><span>Rp ${(i.qty * i.price).toLocaleString()}</span></div>`).join('');
+        Swal.fire({
+            title: 'Struk Digital',
+            html: `<div class="receipt-paper"><div class="receipt-header"><h6 class="fw-bold mb-0">LESEHAN LAMACCA</h6><small>Makassar, Indonesia</small><br><small>WA: 0821-9126-2682</small></div><div class="small mt-2"><div>No: #${o.id.substring(1, 8).toUpperCase()}</div><div>Tgl: ${o.waktu}</div><div>Plg: ${o.pelanggan}</div></div><div class="my-3" style="border-bottom:1px dashed #d1d5db;"></div>${itemsHtml}<div class="my-3" style="border-bottom:1px dashed #d1d5db;"></div><div class="receipt-item"><span>Subtotal</span><span>Rp ${o.total_belanja.toLocaleString()}</span></div><div class="receipt-item"><span>Ongkir (${o.tipe})</span><span>Rp ${o.ongkir.toLocaleString()}</span></div><div class="my-3" style="border-bottom:1px dashed #d1d5db;"></div><div class="receipt-item receipt-total"><span>TOTAL</span><span>Rp ${o.total_bayar.toLocaleString()}</span></div><div class="text-center small mt-4">Metode: ${o.metode_bayar}<br>*** TERIMA KASIH ***</div></div>`,
+            showConfirmButton: true, confirmButtonText: 'Tutup', confirmButtonColor: '#0d9488'
+        });
+    };
+
+    window.processCheckout = async () => {
+        window.requireLogin(async () => {
+            const uSnap = await get(ref(db, `users/${userData.uid}`));
+            const profile = uSnap.val() || {};
+            
+            if (!profile.lat || !profile.lng || !profile.alamat) {
+                return Swal.fire({ 
+                    title: 'Lokasi Belum Lengkap', 
+                    text: 'Silakan tentukan titik lokasi dan alamat di Profil terlebih dahulu.', 
+                    icon: 'warning', 
+                    confirmButtonText: 'Ke Profil', 
+                    confirmButtonColor: '#0d9488' 
+                }).then((result) => {
+                    if (result.isConfirmed) switchView('profile');
+                });
+            }
+
+            let tempLat = profile.lat;
+            let tempLng = profile.lng;
+            let tempAlamat = profile.alamat;
 
             const totalBelanja = cart.reduce((a,b) => a + (b.qty * b.price), 0);
-            const jarakKM = hitungJarak(TOKO_LAT, TOKO_LNG, profile.lat, profile.lng);
-            
-            // --- Logika Baru Disisipkan Di Sini ---
-            let ongkirNormal = 0;
-            if (jarakKM <= 1) {
-                ongkirNormal = 5000;
-            } else {
-                const jarakMeter = jarakKM * 1000;
-                const hitungKasar = jarakMeter * 5;
-                // Membulatkan ke atas ke kelipatan 1000 terdekat
-                ongkirNormal = Math.ceil(hitungKasar / 1000) * 1000;
-            }
-            // --- Akhir Logika Baru ---
-
+            let jarakKM = hitungJarak(TOKO_LAT, TOKO_LNG, tempLat, tempLng);
+            let ongkirNormal = jarakKM <= 1 ? 5000 : Math.ceil((jarakKM * 1000 * 5) / 1000) * 1000;
             const isFree = totalBelanja >= MIN_BELANJA_FREE;
-            const ongkirFinal = isFree ? 0 : ongkirNormal;
+            let ongkirFinal = isFree ? 0 : ongkirNormal;
 
-            const itemsHtml = cart.map(i => `
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="text-start">
-                        <div class="fw-bold" style="font-size: 14px;">${i.name}</div>
-                        <div class="text-muted" style="font-size: 12px;">${i.qty} x Rp ${i.price.toLocaleString()}</div>
-                    </div>
-                    <div class="fw-bold text-dark">Rp ${(i.qty*i.price).toLocaleString()}</div>
-                </div>`).join('');
+            const itemsHtml = cart.map(i => `<div class="d-flex justify-content-between align-items-center mb-3"><div><div class="fw-semibold">${i.name}</div><div class="text-muted small">${i.qty} × Rp ${i.price.toLocaleString()}</div></div><div class="fw-semibold">Rp ${(i.qty*i.price).toLocaleString()}</div></div>`).join('');
 
             const { value: res } = await Swal.fire({
-                title: '<span style="font-size: 18px; font-weight: 800;">Konfirmasi Pesanan</span>',
+                title: 'Konfirmasi Pesanan',
                 html: `
-                    <div class="text-start p-1">
-                        <div class="mb-3 p-3 rounded-4 bg-light border-0">
-                            <div class="small fw-bold text-muted mb-2 text-uppercase" style="letter-spacing: 1px;">Item Pesanan</div>
+                    <div class="text-start">
+                        <div class="mb-4 p-3 bg-light rounded-4">
+                            <div class="small fw-semibold text-uppercase mb-3 text-muted">Item Pesanan</div>
                             ${itemsHtml}
                         </div>
 
-                        <div class="mb-3">
-                            <div class="small fw-bold text-muted mb-2 text-uppercase">Metode Pengiriman</div>
-                            <div class="btn-group w-100 shadow-sm rounded-pill overflow-hidden" style="border: 1px solid #eee;">
-                                <input type="radio" class="btn-check" name="tipe" id="t1" value="Antar" checked onclick="toggleOngkir(true, ${ongkirFinal}, ${totalBelanja})">
-                                <label class="btn btn-outline-primary border-0 py-2 fw-bold" for="t1"><i class="fas fa-motorcycle me-2"></i>ANTAR</label>
-                                
-                                <input type="radio" class="btn-check" name="tipe" id="t2" value="Jemput" onclick="toggleOngkir(false, 0, ${totalBelanja})">
-                                <label class="btn btn-outline-primary border-0 py-2 fw-bold" for="t2"><i class="fas fa-walking me-2"></i>AMBIL</label>
+                        <div class="mb-4">
+                            <div class="small fw-semibold text-uppercase mb-3 text-muted">Metode Pengiriman</div>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="tipe" id="t1" value="Antar" checked>
+                                <label class="btn btn-outline-primary" for="t1"><i class="fas fa-motorcycle me-2"></i>ANTAR</label>
+                                <input type="radio" class="btn-check" name="tipe" id="t2" value="Jemput">
+                                <label class="btn btn-outline-primary" for="t2"><i class="fas fa-walking me-2"></i>AMBIL</label>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <div class="small fw-bold text-muted mb-2 text-uppercase">Metode Pembayaran</div>
-                            <div class="btn-group w-100 shadow-sm rounded-pill overflow-hidden" style="border: 1px solid #eee; font-size: 11px;">
+                        <div class="mb-4">
+                            <div class="small fw-semibold text-uppercase mb-3 text-muted">Lokasi Pengiriman</div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <div id="tempLocationDisplay" class="flex-grow-1 small text-muted">
+                                    ${tempAlamat} (${jarakKM.toFixed(1)} km)
+                                </div>
+                                <button class="btn btn-sm btn-primary rounded-pill btn-update-location">
+                                    <i class="fas fa-map-marker-alt me-1"></i>Lokasi Saya
+                                </button>
+                            </div>
+                            <small class="text-muted d-block">Tekan jika lokasi Anda berbeda dari yang terdaftar.</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="small fw-semibold text-uppercase mb-3 text-muted">Metode Pembayaran</div>
+                            <div class="btn-group w-100" role="group">
                                 <input type="radio" class="btn-check" name="bayar" id="b1" value="COD" checked onclick="updatePayInfo('COD')">
-                                <label class="btn btn-outline-success border-0 py-2 fw-bold" for="b1">COD</label>
-                                
+                                <label class="btn btn-outline-success" for="b1">COD</label>
                                 <input type="radio" class="btn-check" name="bayar" id="b2" value="Bank" onclick="updatePayInfo('BANK')">
-                                <label class="btn btn-outline-success border-0 py-2 fw-bold" for="b2">TRANSFER</label>
-
+                                <label class="btn btn-outline-success" for="b2">TRANSFER</label>
                                 <input type="radio" class="btn-check" name="bayar" id="b3" value="QRIS" onclick="updatePayInfo('QRIS')">
-                                <label class="btn btn-outline-success border-0 py-2 fw-bold" for="b3">QRIS</label>
+                                <label class="btn btn-outline-success" for="b3">QRIS</label>
                             </div>
-                            <div id="pay-info-box" class="pay-info-box mt-2 text-center" style="font-size: 12px; min-height: 40px;">
-                                Bayar tunai saat pesanan tiba.
-                            </div>
+                            <div id="pay-info-box" class="mt-3 p-3 bg-light rounded-4 text-center" style="min-height:80px;"></div>
                         </div>
 
-                        <div class="card border-0 rounded-4 bg-primary text-white p-3 shadow-lg">
-                            <div class="d-flex justify-content-between small opacity-75"><span>Subtotal</span><span>Rp ${totalBelanja.toLocaleString()}</span></div>
-                            <div class="d-flex justify-content-between small opacity-75" id="row-ongkir">
+                        <div class="card bg-primary text-white p-4 rounded-4">
+                            <div class="d-flex justify-content-between small mb-2 opacity-75">
+                                <span>Subtotal</span><span>Rp ${totalBelanja.toLocaleString()}</span>
+                            </div>
+                            <div class="d-flex justify-content-between small mb-2 opacity-75" id="row-ongkir">
                                 <span>Ongkir (${jarakKM.toFixed(1)} km)</span>
                                 <span id="val-ongkir">${isFree ? 'GRATIS' : 'Rp '+ongkirNormal.toLocaleString()}</span>
                             </div>
-                            <hr class="my-2 opacity-25">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="fw-bold">TOTAL BAYAR</span>
-                                <span id="text-total" style="font-size: 20px; font-weight: 800;">Rp ${(totalBelanja + ongkirFinal).toLocaleString()}</span>
+                            <hr class="bg-white opacity-25 my-3">
+                            <div class="d-flex justify-content-between fs-5 fw-bold">
+                                <span>TOTAL BAYAR</span>
+                                <span id="text-total">Rp ${(totalBelanja + ongkirFinal).toLocaleString()}</span>
                             </div>
                         </div>
                     </div>
@@ -550,80 +883,159 @@
                 showCancelButton: true,
                 cancelButtonText: 'Batal',
                 confirmButtonText: 'Kirim Pesanan',
-                confirmButtonColor: '#004aad',
-                preConfirm: () => ({ 
-                    tipe: document.querySelector('input[name="tipe"]:checked').value, 
-                    bayar: document.querySelector('input[name="bayar"]:checked').value,
-                    ongkir: document.querySelector('input[name="tipe"]:checked').value === 'Antar' ? ongkirFinal : 0
-                })
-            });
+                confirmButtonColor: '#0d9488',
+                didOpen: () => {
+                    updatePayInfo('COD');
 
-            if(res) {
-                const order = { 
-                    uid: userData.uid, pelanggan: profile.nama, telepon: profile.wa, alamat: profile.alamat, 
-                    lat: profile.lat, lng: profile.lng, items: cart, total_belanja: totalBelanja,
-                    ongkir: res.ongkir, total_bayar: totalBelanja + res.ongkir, 
-                    tipe: res.tipe, metode_bayar: res.bayar, status: 'Pending', 
-                    waktu: new Date().toLocaleString('id-ID'), timestamp: Date.now() 
-                };
-                
-                push(ref(db, 'pesanan_masuk'), order).then(() => { 
-                    if (order.metode_bayar === 'COD') {
-                        Swal.fire({ title: 'Berhasil!', text: 'Pesanan COD Anda telah tersimpan.', icon: 'success', confirmButtonColor: '#004aad' });
-                    } else {
-                        Swal.fire({ 
-                            title: 'Pesanan Tersimpan!', 
-                            text: 'Silakan klik tombol di bawah untuk kirim bukti bayar ke WA.', 
-                            icon: 'info', 
-                            showCancelButton: true,
-                            confirmButtonText: '<i class="fab fa-whatsapp me-2"></i>Kirim Bukti Bayar',
-                            confirmButtonColor: '#25d366'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                let pesanChat = `Halo Admin Lesehan Lamacca, saya ingin kirim bukti bayar untuk pesanan saya (Metode: ${order.metode_bayar}).`;
-                                window.open(`https://wa.me/6282191262682?text=${pesanChat}`, '_blank');
+                    const popup = document.querySelector('.swal2-popup');
+                    if (popup) {
+                        popup.addEventListener('click', (e) => {
+                            if (e.target.closest('.btn-update-location')) {
+                                Swal.close();
+
+                                Swal.fire({
+                                    title: 'Update Lokasi Pengiriman',
+                                    html: `
+                                        <div id="miniMap" style="height:300px;border-radius:1rem;margin-bottom:1rem;"></div>
+                                        <input type="hidden" id="tempUpLat" value="${tempLat}">
+                                        <input type="hidden" id="tempUpLng" value="${tempLng}">
+                                        <label class="small fw-semibold text-muted">Alamat / Patokan</label>
+                                        <textarea id="tempUpAlamat" class="form-control mb-3" rows="3" placeholder="Nama jalan, blok, atau patokan rumah">${tempAlamat}</textarea>
+                                        <button id="btnGetGpsMini" class="btn btn-primary w-100 rounded-pill mb-2">
+                                            <i class="fas fa-location-arrow me-1"></i>Ambil Lokasi Saya
+                                        </button>
+                                        <small class="text-muted">Geser pin di peta jika perlu penyesuaian.</small>
+                                    `,
+                                    showCancelButton: true,
+                                    cancelButtonText: 'Batal',
+                                    confirmButtonText: 'Simpan untuk Pesanan Ini',
+                                    confirmButtonColor: '#0d9488',
+                                    didOpen: () => {
+                                        let miniMap, miniMarker;
+                                        miniMap = L.map('miniMap').setView([tempLat, tempLng], 15);
+                                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '' }).addTo(miniMap);
+                                        miniMarker = L.marker([tempLat, tempLng], {draggable: true}).addTo(miniMap);
+                                        miniMarker.on('dragend', () => {
+                                            const pos = miniMarker.getLatLng();
+                                            document.getElementById('tempUpLat').value = pos.lat;
+                                            document.getElementById('tempUpLng').value = pos.lng;
+                                        });
+
+                                        document.getElementById('btnGetGpsMini').addEventListener('click', () => {
+                                            if (navigator.geolocation) {
+                                                navigator.geolocation.getCurrentPosition((p) => {
+                                                    tempLat = p.coords.latitude;
+                                                    tempLng = p.coords.longitude;
+                                                    miniMap.setView([tempLat, tempLng], 15);
+                                                    miniMarker.setLatLng([tempLat, tempLng]);
+                                                    document.getElementById('tempUpLat').value = tempLat;
+                                                    document.getElementById('tempUpLng').value = tempLng;
+                                                }, () => Swal.fire('Gagal', 'Tidak bisa mengambil lokasi. Pastikan GPS aktif.', 'error'));
+                                            }
+                                        });
+                                    },
+                                    preConfirm: () => {
+                                        const lat = parseFloat(document.getElementById('tempUpLat').value);
+                                        const lng = parseFloat(document.getElementById('tempUpLng').value);
+                                        const alamat = document.getElementById('tempUpAlamat').value.trim();
+                                        if (isNaN(lat) || isNaN(lng)) {
+                                            Swal.showValidationMessage('Lokasi tidak valid');
+                                            return false;
+                                        }
+                                        return { lat, lng, alamat };
+                                    }
+                                }).then((result) => {
+                                    if (result.value) {
+                                        tempLat = result.value.lat;
+                                        tempLng = result.value.lng;
+                                        tempAlamat = result.value.alamat || tempAlamat;
+
+                                        jarakKM = hitungJarak(TOKO_LAT, TOKO_LNG, tempLat, tempLng);
+                                        ongkirNormal = jarakKM <= 1 ? 5000 : Math.ceil((jarakKM * 1000 * 5) / 1000) * 1000;
+                                        ongkirFinal = isFree ? 0 : ongkirNormal;
+
+                                        document.getElementById('tempLocationDisplay').innerHTML = `${tempAlamat} (${jarakKM.toFixed(1)} km)`;
+                                        document.getElementById('val-ongkir').innerHTML = ongkirFinal === 0 ? 'GRATIS' : 'Rp ' + ongkirNormal.toLocaleString();
+                                        document.getElementById('text-total').innerHTML = 'Rp ' + (totalBelanja + ongkirFinal).toLocaleString();
+                                    }
+                                });
                             }
                         });
                     }
-                    cart = []; updateCartUI(); switchView('orders');
-                });
-            }
-        };
-        // --- NOTIFIKASI STATUS PESANAN ---
-        function listenToOrderStatus() {
-            if (!userData) return;
-            onValue(ref(db, 'pesanan_masuk'), (snap) => {
-                if (snap.exists()) {
-                    const data = snap.val();
-                    const now = Date.now();
-                    Object.keys(data).forEach(key => {
-                        const order = data[key];
-                        if (order.uid === userData.uid && order.status === 'Diterima' && !localStorage.getItem('notif_accept_' + key) && (now - order.timestamp) < 86400000) { 
-                            localStorage.setItem('notif_accept_' + key, 'true');
-                            
-                            // Suara Notifikasi
-                            const audio = new Audio('https://github.com/chuacarangki/toko_macca_kasir/raw/refs/heads/main/notif.mp3');
-                            audio.play().catch(e => console.log("Sound blocked by browser."));
-
-                            // Visual Notification (Toast)
-                            const Toast = Swal.mixin({
-                                toast: true, position: 'top-end', showConfirmButton: false, timer: 6000, timerProgressBar: true
-                            });
-                            Toast.fire({
-                                icon: 'success', title: 'Pesanan Diterima! 👨‍🍳', text: 'Admin sedang memproses pesananmu.'
-                            });
-                        }
-                    });
-                    if (order.status === 'Menunggu Driver' && !localStorage.getItem('notif_wait_driver_' + key)) {
-    // Notif + suara
-    localStorage.setItem('notif_wait_driver_' + key, 'true');
-}
-// Serupa untuk 'Diantar' dan 'Sukses'
+                },
+                preConfirm: () => {
+                    const tipe = document.querySelector('input[name="tipe"]:checked')?.value || 'Antar';
+                    const bayar = document.querySelector('input[name="bayar"]:checked')?.value || 'COD';
+                    const ongkir = tipe === 'Antar' ? ongkirFinal : 0;
+                    return { tipe, bayar, ongkir };
                 }
             });
-        }
 
-        checkAuth();
-    </script>
+            if (res) {
+                const order = { 
+                    uid: userData.uid, 
+                    pelanggan: profile.nama, 
+                    telepon: profile.wa, 
+                    alamat: tempAlamat, 
+                    lat: tempLat,
+                    lng: tempLng,
+                    items: cart, 
+                    total_belanja: totalBelanja, 
+                    ongkir: res.ongkir, 
+                    total_bayar: totalBelanja + res.ongkir, 
+                    tipe: res.tipe, 
+                    metode_bayar: res.bayar, 
+                    status: 'Pending', 
+                    waktu: new Date().toLocaleString('id-ID'), 
+                    timestamp: Date.now() 
+                };
+                push(ref(db, 'pesanan_masuk'), order).then(() => { 
+                    if (order.metode_bayar === 'COD') { 
+                        Swal.fire({ title: 'Berhasil!', text: 'Pesanan COD Anda telah tersimpan.', icon: 'success', confirmButtonColor: '#0d9488' });
+                    } else { 
+                        Swal.fire({ 
+                            title: 'Pesanan Tersimpan!', 
+                            text: 'Silakan kirim bukti bayar ke WA admin.', 
+                            icon: 'info', 
+                            showCancelButton: true, 
+                            confirmButtonText: '<i class="fab fa-whatsapp me-2"></i>Kirim Bukti', 
+                            confirmButtonColor: '#25d366' 
+                        }).then((result) => { 
+                            if (result.isConfirmed) { 
+                                let pesanChat = `Halo Admin Lesehan Lamacca, saya ingin kirim bukti bayar untuk pesanan (Metode: ${order.metode_bayar}).`; 
+                                window.open(`https://wa.me/6282191262682?text=${encodeURIComponent(pesanChat)}`, '_blank'); 
+                            } 
+                        }); 
+                    }
+                    cart = []; 
+                    updateCartUI(); 
+                    switchView('orders');
+                });
+            }
+        });
+    };
+
+    function listenToOrderStatus() {
+        if (!userData) return;
+        onValue(ref(db, 'pesanan_masuk'), (snap) => {
+            if (snap.exists()) {
+                const data = snap.val();
+                const now = Date.now();
+                Object.keys(data).forEach(key => {
+                    const order = data[key];
+                    if (order.uid === userData.uid && order.status === 'Diterima' && !localStorage.getItem('notif_accept_' + key) && (now - order.timestamp) < 86400000) { 
+                        localStorage.setItem('notif_accept_' + key, 'true');
+                        const audio = new Audio('https://github.com/chuacarangki/toko_macca_kasir/raw/refs/heads/main/notif.mp3');
+                        audio.play().catch(() => {});
+                        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 5000 });
+                        Toast.fire({ icon: 'success', title: 'Pesanan Diterima! 🍲' });
+                    }
+                });
+            }
+        });
+    }
+
+    checkAuth();
+</script>
 </body>
 </html>
