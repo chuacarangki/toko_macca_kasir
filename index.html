@@ -217,25 +217,26 @@
         }
 
         .cart-floating {
-            position: fixed;
-            bottom: 85px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border-radius: 1.2rem;
-            padding: 0.6rem 1.2rem;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            box-shadow: 0 10px 25px rgba(13,148,136,0.4);
-            z-index: 998;
-            cursor: pointer;
-            min-width: 200px;
-            max-width: 80%;
-            border: 1.5px solid rgba(255,255,255,0.2);
-        }
+    position: fixed;
+    bottom: 100px; /* Dinaikkan sedikit agar tidak mepet bottom nav */
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    border-radius: 1.2rem;
+    padding: 0.8rem 1.5rem; /* Padding diperbesar dikit agar lebih proporsional */
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-shadow: 0 10px 25px rgba(13,148,136,0.4);
+    z-index: 998;
+    cursor: pointer;
+    width: auto; /* Biar fleksibel mengikuti isi */
+    min-width: 220px; 
+    max-width: 90%;
+    border: 1.5px solid rgba(255,255,255,0.2);
+}
 
         .bottom-nav {
             position: fixed;
