@@ -132,7 +132,6 @@
         }
         .best-card:hover { transform: translateY(-8px); }
 
-        /* Style untuk section kategori horizontal (ukuran kecil & rapi di HP) */
         .category-section {
             margin: 2rem 0 3rem;
         }
@@ -217,26 +216,34 @@
         }
 
         .cart-floating {
-    position: fixed;
-    bottom: 100px; /* Dinaikkan sedikit agar tidak mepet bottom nav */
-    left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: white;
-    border-radius: 1.2rem;
-    padding: 0.8rem 1.5rem; /* Padding diperbesar dikit agar lebih proporsional */
-    display: none;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    box-shadow: 0 10px 25px rgba(13,148,136,0.4);
-    z-index: 998;
-    cursor: pointer;
-    width: auto; /* Biar fleksibel mengikuti isi */
-    min-width: 220px; 
-    max-width: 90%;
-    border: 1.5px solid rgba(255,255,255,0.2);
-}
+            position: fixed;
+            bottom: 100px;
+            left: 0;
+            right: 0;
+            margin-left: auto;
+            margin-right: auto;
+            transform: none;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-radius: 1.2rem;
+            padding: 0.8rem 1.5rem;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px rgba(13,148,136,0.4);
+            z-index: 10000;
+            cursor: pointer;
+            width: max-content;
+            min-width: 220px;
+            max-width: 90vw;
+            border: 1.5px solid rgba(255,255,255,0.2);
+            box-sizing: border-box;
+        }
+
+        .cart-floating.show {
+            display: flex !important;
+        }
 
         .bottom-nav {
             position: fixed;
@@ -335,25 +342,25 @@
 <body>
 
     <div id="auth-screen" style="display: none;">
-    <div class="auth-card animate__animated animate__zoomIn">
-        <div class="text-center mb-4">
-            <div class="bg-white text-primary rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-3 shadow" style="width:85px;height:85px;">
-                <i class="fas fa-utensils fa-2x"></i>
+        <div class="auth-card animate__animated animate__zoomIn">
+            <div class="text-center mb-4">
+                <div class="bg-white text-primary rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-3 shadow" style="width:85px;height:85px;">
+                    <i class="fas fa-utensils fa-2x"></i>
+                </div>
+                <h4 class="fw-bold mb-1">Login / Daftar</h4>
+                <p class="text-muted small mb-0" style="font-style:italic;">Masuk dulu biar bisa pesan ya!</p>
             </div>
-            <h4 class="fw-bold mb-1">Login / Daftar</h4>
-            <p class="text-muted small mb-0" style="font-style:italic;">Masuk dulu biar bisa pesan ya!</p>
+            <div class="mb-3">
+                <label class="small fw-semibold text-muted">Nama Lengkap</label>
+                <input type="text" id="waNama" class="form-control rounded-pill px-4 py-2.5" placeholder="Contoh: Andi Saputra">
+            </div>
+            <div class="mb-4">
+                <label class="small fw-semibold text-muted">Nomor WhatsApp</label>
+                <input type="number" id="waNomor" class="form-control rounded-pill px-4 py-2.5" placeholder="08123456789">
+            </div>
+            <button class="btn btn-primary w-100 rounded-pill py-3 fw-bold" onclick="handleWaLogin()">MULAI PESAN</button>
         </div>
-        <div class="mb-3">
-            <label class="small fw-semibold text-muted">Nama Lengkap</label>
-            <input type="text" id="waNama" class="form-control rounded-pill px-4 py-2.5" placeholder="Contoh: Macca">
-        </div>
-        <div class="mb-4">
-            <label class="small fw-semibold text-muted">Nomor WhatsApp</label>
-            <input type="number" id="waNomor" class="form-control rounded-pill px-4 py-2.5" placeholder="08123456789">
-        </div>
-        <button class="btn btn-primary w-100 rounded-pill py-3 fw-bold" onclick="handleWaLogin()">MULAI PESAN</button>
     </div>
-</div>
 
     <div id="main-app" style="display:none;">
         <div id="view-home">
@@ -513,7 +520,7 @@
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('userDisplay').innerText = userData.nama || 'Pelanggan';
         Swal.fire('Sukses', 'Selamat datang! Silakan lanjut pesan.', 'success');
-        checkAuth();  // refresh tampilan
+        checkAuth();
     };
 
     window.handleLogout = () => {
@@ -523,48 +530,38 @@
     };
 
     window.updateQty = (index, change) => {
-    const newQty = cart[index].qty + change;
-    
-    if (newQty > 0) {
-        cart[index].qty = newQty;
-        updateCartUI(); // Update floating bar
-        Swal.close();
-        setTimeout(() => {
-            window.processCheckout(); // Refresh modal untuk hitung ulang total & ongkir
-        }, 100);
-    } else {
-        // Jika qty jadi 0, panggil fungsi hapus
-        window.removeItem(index);
-    }
-};
+        const newQty = cart[index].qty + change;
+        if (newQty > 0) {
+            cart[index].qty = newQty;
+            updateCartUI();
+            Swal.close();
+            setTimeout(() => { window.processCheckout(); }, 100);
+        } else {
+            window.removeItem(index);
+        }
+    };
 
-window.toggleAlamatToko = (isJemput) => {
-    const infoToko = document.getElementById('info_toko_jemput');
-    const inputAlamat = document.getElementById('pengiriman_info'); // Container input alamat user
-    
-    if (isJemput) {
-        infoToko.style.display = 'block';
-        if(inputAlamat) inputAlamat.style.display = 'none'; // Sembunyikan input alamat user
+    window.toggleAlamatToko = (isJemput) => {
+        const infoToko = document.getElementById('info_toko_jemput');
+        const inputAlamat = document.getElementById('pengiriman_info');
         
-        // Update teks ongkir jadi gratis
-        const valOngkir = document.getElementById('val-ongkir');
-        if(valOngkir) valOngkir.innerText = 'GRATIS (AMBIL)';
-    } else {
-        infoToko.style.display = 'none';
-        if(inputAlamat) inputAlamat.style.display = 'block';
-        
-        // Refresh modal untuk hitung ulang ongkir otomatis
-        Swal.close();
-        setTimeout(() => window.processCheckout(), 50);
-    }
-};
+        if (isJemput) {
+            infoToko.style.display = 'block';
+            if(inputAlamat) inputAlamat.style.display = 'none';
+            const valOngkir = document.getElementById('val-ongkir');
+            if(valOngkir) valOngkir.innerText = 'GRATIS (AMBIL)';
+        } else {
+            infoToko.style.display = 'none';
+            if(inputAlamat) inputAlamat.style.display = 'block';
+            Swal.close();
+            setTimeout(() => window.processCheckout(), 50);
+        }
+    };
 
-    // Fungsi untuk memaksa login sebelum action tertentu
     window.requireLogin = (callback) => {
         if (userData) {
-            callback();  // sudah login, lanjut
+            callback();
         } else {
-            // Tampilkan auth-screen sebagai popup
             document.getElementById('auth-screen').style.display = 'flex';
             Swal.fire({
                 title: 'Login Dulu Ya',
@@ -625,33 +622,21 @@ window.toggleAlamatToko = (isJemput) => {
         });
     };
 
- window.removeItem = (index) => {
-    cart.splice(index, 1); // Menghapus item dari keranjang
-    updateCartUI(); // Update angka di floating cart
-    Swal.close(); // Tutup modal konfirmasi yang sedang terbuka
-    
-    if (cart.length > 0) {
-        // Buka kembali modal konfirmasi dengan data terbaru
-        setTimeout(() => {
-            window.processCheckout();
-        }, 150);
-    } else {
-        // Jika keranjang kosong setelah dihapus, beri info
-        Swal.fire({
-            title: 'Keranjang Kosong',
-            text: 'Semua menu telah dihapus.',
-            icon: 'info',
-            confirmButtonColor: '#0d9488'
-        });
-    }
-
-
-    // 4. Tutup dan buka kembali Checkout untuk menghitung ulang Ongkir & Total
-    Swal.close();
-    setTimeout(() => {
-        window.processCheckout();
-    }, 150); 
-};
+    window.removeItem = (index) => {
+        cart.splice(index, 1);
+        updateCartUI();
+        Swal.close();
+        if (cart.length > 0) {
+            setTimeout(() => { window.processCheckout(); }, 150);
+        } else {
+            Swal.fire({
+                title: 'Keranjang Kosong',
+                text: 'Semua menu telah dihapus.',
+                icon: 'info',
+                confirmButtonColor: '#0d9488'
+            });
+        }
+    };
 
     window.saveProfile = () => {
         const up = { 
@@ -680,7 +665,7 @@ window.toggleAlamatToko = (isJemput) => {
     };
 
     window.searchMenu = (val) => {
-        Swal.fire('Info', 'Pencarian sementara dinonaktifkan di layout baru ini.', 'info');
+        // Logika pencarian bisa ditambahkan di sini jika diperlukan
     };
 
     window.updatePayInfo = (t) => {
@@ -701,7 +686,6 @@ window.toggleAlamatToko = (isJemput) => {
             userData = JSON.parse(savedUser);
             document.getElementById('userDisplay').innerText = userData.nama || 'Pelanggan';
         }
-        // Selalu tampilkan main-app, auth-screen hanya dipanggil saat butuh
         document.getElementById('main-app').style.display = 'block';
         document.getElementById('auth-screen').style.display = 'none';
         loadMenuData();
@@ -741,11 +725,11 @@ window.toggleAlamatToko = (isJemput) => {
     function updateCartUI() {
         const bar = document.getElementById('cartBar');
         if(cart.length > 0) {
-            bar.style.display = 'flex';
+            bar.classList.add('show'); 
             document.getElementById('cartQty').innerText = cart.reduce((a,b) => a + b.qty, 0);
             document.getElementById('cartTotal').innerText = 'Rp ' + cart.reduce((a,b) => a + (b.qty * b.price), 0).toLocaleString();
         } else {
-            bar.style.display = 'none';
+            bar.classList.remove('show');
         }
     }
 
@@ -762,14 +746,11 @@ window.toggleAlamatToko = (isJemput) => {
     function renderCategorySections() {
         const container = document.getElementById('categoriesSections');
         if (!container || masterMenu.length === 0) return;
-
         const categories = [...new Set(masterMenu.map(m => m.category).filter(Boolean))];
-
         let html = '';
         categories.forEach(cat => {
             const items = masterMenu.filter(m => m.category === cat);
             if (items.length === 0) return;
-
             html += `
                 <div class="category-section">
                     <h5 class="category-title">${cat}</h5>
@@ -797,7 +778,6 @@ window.toggleAlamatToko = (isJemput) => {
                 </div>
             `;
         });
-
         container.innerHTML = html;
     }
 
@@ -826,7 +806,7 @@ window.toggleAlamatToko = (isJemput) => {
                     .filter(o => o.uid === userData?.uid)
                     .sort((a,b) => b.timestamp - a.timestamp);
                 myOrders.forEach(o => {
-                    const orderData = JSON.stringify(o).replace(/"/g, '&quot;');
+                    const orderData = JSON.stringify(o).replace(/"/g, '"');
                     list.innerHTML += `
                     <div class="card border-0 rounded-4 shadow-sm p-3 mb-3">
                         <div class="d-flex justify-content-between small mb-2">
@@ -857,284 +837,227 @@ window.toggleAlamatToko = (isJemput) => {
     };
 
     window.processCheckout = async () => {
-        window.requireLogin(async () => {
-            const uSnap = await get(ref(db, `users/${userData.uid}`));
-            const profile = uSnap.val() || {};
-            
-            if (!profile.lat || !profile.lng || !profile.alamat) {
-                return Swal.fire({ 
-                    title: 'Lokasi Belum Lengkap', 
-                    text: 'Silakan tentukan titik lokasi dan alamat di Profil terlebih dahulu.', 
-                    icon: 'warning', 
-                    confirmButtonText: 'Ke Profil', 
-                    confirmButtonColor: '#0d9488' 
-                }).then((result) => {
-                    if (result.isConfirmed) switchView('profile');
-                });
-            }
-
-            let tempLat = profile.lat;
-            let tempLng = profile.lng;
-            let tempAlamat = profile.alamat;
-
-            const totalBelanja = cart.reduce((a,b) => a + (b.qty * b.price), 0);
-            let jarakKM = hitungJarak(TOKO_LAT, TOKO_LNG, tempLat, tempLng);
-            let ongkirNormal = jarakKM <= 1 ? 5000 : Math.ceil((jarakKM * 1000 * 5) / 1000) * 1000;
-            const isFree = totalBelanja >= MIN_BELANJA_FREE;
-            let ongkirFinal = isFree ? 0 : ongkirNormal;
-
-    const itemsHtml = cart.map((i, index) => `
-    <div class="d-flex justify-content-between align-items-center mb-3" style="font-size: 0.85rem;">
-        <div style="flex: 1;">
-            <div class="fw-semibold">${i.name}</div>
-            <div class="text-muted" style="font-size: 0.75rem;">Rp ${i.price.toLocaleString()}</div>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-            <div class="d-flex align-items-center bg-light rounded-pill px-2 border">
-                <button class="btn btn-sm p-0 border-0 text-primary" onclick="updateQty(${index}, -1)">
-                    <i class="fas fa-minus-circle"></i>
-                </button>
-                <span class="mx-2 fw-bold" style="min-width: 20px; text-align: center;">${i.qty}</span>
-                <button class="btn btn-sm p-0 border-0 text-primary" onclick="updateQty(${index}, 1)">
-                    <i class="fas fa-plus-circle"></i>
-                </button>
-            </div>
-            
-            <div class="fw-semibold text-end" style="min-width: 80px;">
-                Rp ${(i.qty * i.price).toLocaleString()}
-            </div>
-
-            <button class="btn btn-sm text-danger p-0 border-0" onclick="removeItem(${index})">
-                <i class="fas fa-trash-alt" style="font-size: 0.8rem;"></i>
-            </button>
-        </div>
-    </div>`).join('');
-
-            const { value: res } = await Swal.fire({
-                title: 'Konfirmasi Pesanan',
-                html: `
-                    <div class="text-start">
-                        <div class="mb-4 p-3 bg-light rounded-4">
-                            <div class="small fw-semibold text-uppercase mb-3 text-muted">Item Pesanan</div>
-                            ${itemsHtml}
-                        </div>
-
-                <div class="mb-4">
-    <div class="small fw-semibold text-uppercase mb-3 text-muted">Metode Pengiriman</div>
-    <div class="btn-group w-100" role="group">
-        <input type="radio" class="btn-check" name="tipe" id="t1" value="Antar" checked onclick="toggleAlamatToko(false)">
-        <label class="btn btn-outline-primary" for="t1"><i class="fas fa-motorcycle me-2"></i>ANTAR</label>
+    window.requireLogin(async () => {
+        const uSnap = await get(ref(db, `users/${userData.uid}`));
+        const profile = uSnap.val() || {};
         
-        <input type="radio" class="btn-check" name="tipe" id="t2" value="Jemput" onclick="toggleAlamatToko(true)">
-        <label class="btn btn-outline-primary" for="t2"><i class="fas fa-walking me-2"></i>AMBIL</label>
-    </div>
-    
-    <div id="info_toko_jemput" class="mt-3 p-0 overflow-hidden border rounded-4 animate__animated animate__fadeIn" style="display:none; background: #fff;">
-        <div class="p-3">
-            <div class="small fw-bold text-primary mb-1"><i class="fas fa-store me-1"></i> LOKASI PENGAMBILAN:</div>
-            <div class="small text-dark">
-                Jl. M Yasin Limpo, Samata Gowa
+        if (!profile.lat || !profile.lng || !profile.alamat) {
+            return Swal.fire({ 
+                title: 'Lokasi Belum Lengkap', 
+                text: 'Silakan tentukan titik lokasi dan alamat di Profil terlebih dahulu.', 
+                icon: 'warning', 
+                confirmButtonText: 'Ke Profil', 
+                confirmButtonColor: '#0d9488' 
+            }).then((result) => {
+                if (result.isConfirmed) switchView('profile');
+            });
+        }
+
+        const bar = document.getElementById('cartBar');
+        if(bar) bar.classList.remove('show');
+
+        // Variabel penampung sementara
+        let tempLat = profile.lat;
+        let tempLng = profile.lng;
+        let tempAlamat = profile.alamat;
+
+        const totalBelanja = cart.reduce((a,b) => a + (b.qty * b.price), 0);
+        let jarakKM = hitungJarak(TOKO_LAT, TOKO_LNG, tempLat, tempLng);
+        let ongkirNormal = jarakKM <= 1 ? 5000 : Math.ceil((jarakKM * 1000 * 5) / 1000) * 1000;
+        const isFree = totalBelanja >= MIN_BELANJA_FREE;
+        let ongkirFinal = isFree ? 0 : ongkirNormal;
+
+        const itemsHtml = cart.map((i, index) => `
+        <div class="d-flex justify-content-between align-items-center mb-3" style="font-size: 0.85rem;">
+            <div style="flex: 1;">
+                <div class="fw-semibold">${i.name}</div>
+                <div class="text-muted" style="font-size: 0.75rem;">Rp ${i.price.toLocaleString()}</div>
             </div>
-        </div>
-        
-        <div style="width: 100%; height: 150px;">
-            <iframe 
-                width="100%" 
-                height="150" 
-                frameborder="0" 
-                style="border:0" 
-                src="https://www.google.com/maps/embed/v1/place?key=SILAKAN_KOSONGKAN_ATAU_GUNAKAN_LINK_BIASA&q=-5.2039023,119.5002886" 
-                allowfullscreen>
-            </iframe>
-            <img src="https://maps.googleapis.com/maps/api/staticmap?center=-5.2039023,119.5002886&zoom=15&size=400x150&markers=color:red%7C-5.2039023,119.5002886&key=YOUR_API_KEY" 
-                 onerror="this.src='https://placehold.co/400x150/0d9488/white?text=Klik+Tombol+di+Bawah+untuk+Navigasi'" 
-                 class="w-100" style="object-fit: cover; height: 150px;">
-        </div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center bg-light rounded-pill px-2 border">
+                    <span class="mx-2 fw-bold">${i.qty}x</span>
+                </div>
+                <div class="fw-semibold text-end" style="min-width: 80px;">
+                    Rp ${(i.qty * i.price).toLocaleString()}
+                </div>
+            </div>
+        </div>`).join('');
 
-        <div class="p-2">
-            <a href="https://www.google.com/maps?q=-5.2039023,119.5002886" target="_blank" class="btn btn-sm btn-success w-100 rounded-pill py-2" style="font-size: 11px;">
-                <i class="fas fa-directions me-1"></i> BUKA PETUNJUK ARAH (MAPS)
-            </a>
-        </div>
-    </div>
-</div>
+        const { value: res } = await Swal.fire({
+            title: 'Konfirmasi Pesanan',
+            width: '500px',
+            html: `
+                <div class="text-start">
+                    <div class="mb-3 p-3 bg-light rounded-4">
+                        <div class="small fw-semibold text-uppercase mb-2 text-muted">Item Pesanan</div>
+                        ${itemsHtml}
+                    </div>
 
-                        <div class="mb-4">
-                            <div class="small fw-semibold text-uppercase mb-3 text-muted">Lokasi Pengiriman</div>
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <div id="tempLocationDisplay" class="flex-grow-1 small text-muted">
-                                    ${tempAlamat} (${jarakKM.toFixed(1)} km)
-                                </div>
-                                <button class="btn btn-sm btn-primary rounded-pill btn-update-location">
-                                    <i class="fas fa-map-marker-alt me-1"></i>Lokasi Saya
-                                </button>
-                            </div>
-                            <small class="text-muted d-block">Tekan jika lokasi Anda berbeda dari yang terdaftar.</small>
-                        </div>
-
-                        <div class="mb-4">
-                            <div class="small fw-semibold text-uppercase mb-3 text-muted">Metode Pembayaran</div>
-                            <div class="btn-group w-100" role="group">
-                                <input type="radio" class="btn-check" name="bayar" id="b1" value="COD" checked onclick="updatePayInfo('COD')">
-                                <label class="btn btn-outline-success" for="b1">COD</label>
-                                <input type="radio" class="btn-check" name="bayar" id="b2" value="Bank" onclick="updatePayInfo('BANK')">
-                                <label class="btn btn-outline-success" for="b2">TRANSFER</label>
-                                <input type="radio" class="btn-check" name="bayar" id="b3" value="QRIS" onclick="updatePayInfo('QRIS')">
-                                <label class="btn btn-outline-success" for="b3">QRIS</label>
-                            </div>
-                            <div id="pay-info-box" class="mt-3 p-3 bg-light rounded-4 text-center" style="min-height:80px;"></div>
-                        </div>
-
-                        <div class="card bg-primary text-white p-4 rounded-4">
-                            <div class="d-flex justify-content-between small mb-2 opacity-75">
-                                <span>Subtotal</span><span>Rp ${totalBelanja.toLocaleString()}</span>
-                            </div>
-                            <div class="d-flex justify-content-between small mb-2 opacity-75" id="row-ongkir">
-                                <span>Ongkir (${jarakKM.toFixed(1)} km)</span>
-                                <span id="val-ongkir">${isFree ? 'GRATIS' : 'Rp '+ongkirNormal.toLocaleString()}</span>
-                            </div>
-                            <hr class="bg-white opacity-25 my-3">
-                            <div class="d-flex justify-content-between fs-5 fw-bold">
-                                <span>TOTAL BAYAR</span>
-                                <span id="text-total">Rp ${(totalBelanja + ongkirFinal).toLocaleString()}</span>
-                            </div>
+                    <div class="mb-3">
+                        <div class="small fw-semibold text-uppercase mb-2 text-muted">Metode Pengiriman</div>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="tipe" id="t1" value="Antar" checked>
+                            <label class="btn btn-outline-primary" for="t1"><i class="fas fa-motorcycle me-2"></i>ANTAR</label>
+                            <input type="radio" class="btn-check" name="tipe" id="t2" value="Jemput">
+                            <label class="btn btn-outline-primary" for="t2"><i class="fas fa-walking me-2"></i>AMBIL</label>
                         </div>
                     </div>
-                `,
-                showCancelButton: true,
-                cancelButtonText: 'Batal',
-                confirmButtonText: 'Kirim Pesanan',
-                confirmButtonColor: '#0d9488',
-                didOpen: () => {
-                    updatePayInfo('COD');
 
-                    const popup = document.querySelector('.swal2-popup');
-                    if (popup) {
-                        popup.addEventListener('click', (e) => {
-                            if (e.target.closest('.btn-update-location')) {
-                                Swal.close();
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="small fw-semibold text-uppercase text-muted">Lokasi Pengiriman</div>
+                            <button type="button" id="btnBukaPeta" class="btn btn-sm btn-primary rounded-pill">
+                                <i class="fas fa-map-marker-alt me-1"></i>Ubah Lokasi
+                            </button>
+                        </div>
 
-                                Swal.fire({
-                                    title: 'Update Lokasi Pengiriman',
-                                    html: `
-                                        <div id="miniMap" style="height:300px;border-radius:1rem;margin-bottom:1rem;"></div>
-                                        <input type="hidden" id="tempUpLat" value="${tempLat}">
-                                        <input type="hidden" id="tempUpLng" value="${tempLng}">
-                                        <label class="small fw-semibold text-muted">Alamat / Patokan</label>
-                                        <textarea id="tempUpAlamat" class="form-control mb-3" rows="3" placeholder="Nama jalan, blok, atau patokan rumah">${tempAlamat}</textarea>
-                                        <button id="btnGetGpsMini" class="btn btn-primary w-100 rounded-pill mb-2">
-                                            <i class="fas fa-location-arrow me-1"></i>Ambil Lokasi Saya
-                                        </button>
-                                        <small class="text-muted">Geser pin di peta jika perlu penyesuaian.</small>
-                                    `,
-                                    showCancelButton: true,
-                                    cancelButtonText: 'Batal',
-                                    confirmButtonText: 'Simpan untuk Pesanan Ini',
-                                    confirmButtonColor: '#0d9488',
-                                    didOpen: () => {
-                                        let miniMap, miniMarker;
-                                        miniMap = L.map('miniMap').setView([tempLat, tempLng], 15);
-                                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '' }).addTo(miniMap);
-                                        miniMarker = L.marker([tempLat, tempLng], {draggable: true}).addTo(miniMap);
-                                        miniMarker.on('dragend', () => {
-                                            const pos = miniMarker.getLatLng();
-                                            document.getElementById('tempUpLat').value = pos.lat;
-                                            document.getElementById('tempUpLng').value = pos.lng;
-                                        });
+                        <div id="boxPetaCheckout" style="display:none;" class="p-2 border rounded-4 mb-2 animate__animated animate__fadeIn">
+                            <div id="miniMap" style="height:200px; border-radius:1rem; margin-bottom:10px;"></div>
+                            <button type="button" id="btnGpsDua" class="btn btn-sm btn-success w-100 rounded-pill mb-2">
+                                <i class="fas fa-crosshairs me-1"></i>GPS SAYA
+                            </button>
+                            <textarea id="txtAlamatBaru" class="form-control form-control-sm" rows="2" placeholder="Detail alamat...">${tempAlamat}</textarea>
+                        </div>
 
-                                        document.getElementById('btnGetGpsMini').addEventListener('click', () => {
-                                            if (navigator.geolocation) {
-                                                navigator.geolocation.getCurrentPosition((p) => {
-                                                    tempLat = p.coords.latitude;
-                                                    tempLng = p.coords.longitude;
-                                                    miniMap.setView([tempLat, tempLng], 15);
-                                                    miniMarker.setLatLng([tempLat, tempLng]);
-                                                    document.getElementById('tempUpLat').value = tempLat;
-                                                    document.getElementById('tempUpLng').value = tempLng;
-                                                }, () => Swal.fire('Gagal', 'Tidak bisa mengambil lokasi. Pastikan GPS aktif.', 'error'));
-                                            }
-                                        });
-                                    },
-                                    preConfirm: () => {
-                                        const lat = parseFloat(document.getElementById('tempUpLat').value);
-                                        const lng = parseFloat(document.getElementById('tempUpLng').value);
-                                        const alamat = document.getElementById('tempUpAlamat').value.trim();
-                                        if (isNaN(lat) || isNaN(lng)) {
-                                            Swal.showValidationMessage('Lokasi tidak valid');
-                                            return false;
-                                        }
-                                        return { lat, lng, alamat };
-                                    }
-                                }).then((result) => {
-                                    if (result.value) {
-                                        tempLat = result.value.lat;
-                                        tempLng = result.value.lng;
-                                        tempAlamat = result.value.alamat || tempAlamat;
+                        <div id="displayAlamat" class="p-3 border rounded-4 bg-white shadow-sm" style="font-size:0.85rem;">
+                            <div id="textAlamat" class="fw-bold text-dark mb-1">${tempAlamat}</div>
+                            <div id="textJarak" class="badge bg-info">${jarakKM.toFixed(1)} km dari toko</div>
+                        </div>
+                    </div>
 
-                                        jarakKM = hitungJarak(TOKO_LAT, TOKO_LNG, tempLat, tempLng);
-                                        ongkirNormal = jarakKM <= 1 ? 5000 : Math.ceil((jarakKM * 1000 * 5) / 1000) * 1000;
-                                        ongkirFinal = isFree ? 0 : ongkirNormal;
+                    <div class="mb-3">
+                        <div class="small fw-semibold text-uppercase mb-2 text-muted">Metode Pembayaran</div>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="bayar" id="b1" value="COD" checked>
+                            <label class="btn btn-outline-success" for="b1">COD</label>
+                            <input type="radio" class="btn-check" name="bayar" id="b2" value="Bank">
+                            <label class="btn btn-outline-success" for="b2">TRANSFER</label>
+                        </div>
+                    </div>
 
-                                        document.getElementById('tempLocationDisplay').innerHTML = `${tempAlamat} (${jarakKM.toFixed(1)} km)`;
-                                        document.getElementById('val-ongkir').innerHTML = ongkirFinal === 0 ? 'GRATIS' : 'Rp ' + ongkirNormal.toLocaleString();
-                                        document.getElementById('text-total').innerHTML = 'Rp ' + (totalBelanja + ongkirFinal).toLocaleString();
-                                    }
-                                });
-                            }
+                    <div class="card bg-primary text-white p-3 rounded-4 border-0">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Subtotal</span><span>Rp ${totalBelanja.toLocaleString()}</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Ongkir</span><span id="labelOngkir">${isFree ? 'GRATIS' : 'Rp '+ongkirNormal.toLocaleString()}</span>
+                        </div>
+                        <hr class="my-2 opacity-25">
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>TOTAL</span><span id="labelTotal">Rp ${(totalBelanja + ongkirFinal).toLocaleString()}</span>
+                        </div>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Kirim Pesanan',
+            confirmButtonColor: '#0d9488',
+            didOpen: () => {
+                let map;
+                let marker;
+
+                // Fungsi hitung ulang ongkir & Update UI
+                const refreshPricing = () => {
+                    jarakKM = hitungJarak(TOKO_LAT, TOKO_LNG, tempLat, tempLng);
+                    ongkirNormal = jarakKM <= 1 ? 5000 : Math.ceil((jarakKM * 1000 * 5) / 1000) * 1000;
+                    
+                    const tipe = document.querySelector('input[name="tipe"]:checked').value;
+                    ongkirFinal = (tipe === 'Jemput' || isFree) ? 0 : ongkirNormal;
+
+                    document.getElementById('textJarak').innerText = `${jarakKM.toFixed(1)} km dari toko`;
+                    document.getElementById('labelOngkir').innerText = ongkirFinal === 0 ? 'GRATIS' : 'Rp ' + ongkirFinal.toLocaleString();
+                    document.getElementById('labelTotal').innerText = 'Rp ' + (totalBelanja + ongkirFinal).toLocaleString();
+                };
+
+                // Toggle Buka Peta
+                document.getElementById('btnBukaPeta').addEventListener('click', () => {
+                    const box = document.getElementById('boxPetaCheckout');
+                    if(box.style.display === 'none') {
+                        box.style.display = 'block';
+                        if(!map) {
+                            map = L.map('miniMap').setView([tempLat, tempLng], 15);
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                            marker = L.marker([tempLat, tempLng], {draggable: true}).addTo(map);
+                            
+                            marker.on('dragend', async () => {
+                                const pos = marker.getLatLng();
+                                tempLat = pos.lat; tempLng = pos.lng;
+                                refreshPricing();
+                                // Reverse Geocode
+                                try {
+                                    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${pos.lat}&lon=${pos.lng}`);
+                                    const d = await r.json();
+                                    tempAlamat = d.display_name;
+                                    document.getElementById('txtAlamatBaru').value = tempAlamat;
+                                    document.getElementById('textAlamat').innerText = tempAlamat;
+                                } catch(e){}
+                            });
+                        }
+                    } else {
+                        box.style.display = 'none';
+                    }
+                });
+
+                // Tombol GPS Saya
+                document.getElementById('btnGpsDua').addEventListener('click', () => {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(async (p) => {
+                            const lt = p.coords.latitude, lg = p.coords.longitude;
+                            tempLat = lt; tempLng = lg;
+                            map.setView([lt, lg], 17);
+                            marker.setLatLng([lt, lg]);
+                            refreshPricing();
+                            try {
+                                const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lt}&lon=${lg}`);
+                                const d = await r.json();
+                                tempAlamat = d.display_name;
+                                document.getElementById('txtAlamatBaru').value = tempAlamat;
+                                document.getElementById('textAlamat').innerText = tempAlamat;
+                            } catch(e){}
                         });
                     }
-                },
-                preConfirm: () => {
-                    const tipe = document.querySelector('input[name="tipe"]:checked')?.value || 'Antar';
-                    const bayar = document.querySelector('input[name="bayar"]:checked')?.value || 'COD';
-                    const ongkir = tipe === 'Antar' ? ongkirFinal : 0;
-                    return { tipe, bayar, ongkir };
-                }
-            });
-
-            if (res) {
-                const order = { 
-                    uid: userData.uid, 
-                    pelanggan: profile.nama, 
-                    telepon: profile.wa, 
-                    alamat: tempAlamat, 
-                    lat: tempLat,
-                    lng: tempLng,
-                    items: cart, 
-                    total_belanja: totalBelanja, 
-                    ongkir: res.ongkir, 
-                    total_bayar: totalBelanja + res.ongkir, 
-                    tipe: res.tipe, 
-                    metode_bayar: res.bayar, 
-                    status: 'Pending', 
-                    waktu: new Date().toLocaleString('id-ID'), 
-                    timestamp: Date.now() 
-                };
-                push(ref(db, 'pesanan_masuk'), order).then(() => { 
-                    if (order.metode_bayar === 'COD') { 
-                        Swal.fire({ title: 'Berhasil!', text: 'Pesanan COD Anda telah tersimpan.', icon: 'success', confirmButtonColor: '#0d9488' });
-                    } else { 
-                        Swal.fire({ 
-                            title: 'Pesanan Tersimpan!', 
-                            text: 'Silakan kirim bukti bayar ke WA admin.', 
-                            icon: 'info', 
-                            showCancelButton: true, 
-                            confirmButtonText: '<i class="fab fa-whatsapp me-2"></i>Kirim Bukti', 
-                            confirmButtonColor: '#25d366' 
-                        }).then((result) => { 
-                            if (result.isConfirmed) { 
-                                let pesanChat = `Halo Admin Lesehan Lamacca, saya ingin kirim bukti bayar untuk pesanan (Metode: ${order.metode_bayar}).`; 
-                                window.open(`https://wa.me/6282191262682?text=${encodeURIComponent(pesanChat)}`, '_blank'); 
-                            } 
-                        }); 
-                    }
-                    cart = []; 
-                    updateCartUI(); 
-                    switchView('orders');
                 });
+
+                // Input manual alamat
+                document.getElementById('txtAlamatBaru').addEventListener('input', (e) => {
+                    tempAlamat = e.target.value;
+                    document.getElementById('textAlamat').innerText = tempAlamat;
+                });
+
+                // Listener Tipe Antar/Jemput
+                document.querySelectorAll('input[name="tipe"]').forEach(el => {
+                    el.addEventListener('change', refreshPricing);
+                });
+            },
+            preConfirm: () => {
+                const tipe = document.querySelector('input[name="tipe"]:checked').value;
+                const bayar = document.querySelector('input[name="bayar"]:checked').value;
+                if(!tempAlamat) return Swal.showValidationMessage('Alamat harus diisi!');
+                return { tipe, bayar, lat: tempLat, lng: tempLng, alamat: tempAlamat, ongkir: ongkirFinal };
             }
         });
-    };
+
+        if (res) {
+            // Update database user agar lokasi baru tersimpan
+            update(ref(db, `users/${userData.uid}`), { lat: res.lat, lng: res.lng, alamat: res.alamat });
+
+            const order = { 
+                uid: userData.uid, pelanggan: profile.nama, telepon: profile.wa, alamat: res.alamat, 
+                lat: res.lat, lng: res.lng, items: cart, total_belanja: totalBelanja, 
+                ongkir: res.ongkir, total_bayar: totalBelanja + res.ongkir, 
+                tipe: res.tipe, metode_bayar: res.bayar, status: 'Pending', 
+                waktu: new Date().toLocaleString('id-ID'), timestamp: Date.now() 
+            };
+
+            push(ref(db, 'pesanan_masuk'), order).then(() => { 
+                Swal.fire({ title: 'Berhasil!', text: 'Pesanan telah terkirim.', icon: 'success' });
+                cart = []; 
+                updateCartUI(); 
+                switchView('orders');
+            });
+        }
+    });
+};
 
     function listenToOrderStatus() {
         if (!userData) return;
@@ -1146,10 +1069,8 @@ window.toggleAlamatToko = (isJemput) => {
                     const order = data[key];
                     if (order.uid === userData.uid && order.status === 'Diterima' && !localStorage.getItem('notif_accept_' + key) && (now - order.timestamp) < 86400000) { 
                         localStorage.setItem('notif_accept_' + key, 'true');
-                        const audio = new Audio('https://github.com/chuacarangki/toko_macca_kasir/raw/refs/heads/main/notif.mp3');
-                        audio.play().catch(() => {});
-                        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 5000 });
-                        Toast.fire({ icon: 'success', title: 'Pesanan Diterima! 🍲' });
+                        new Audio('https://github.com/chuacarangki/toko_macca_kasir/raw/refs/heads/main/notif.mp3').play().catch(() => {});
+                        Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 5000 }).fire({ icon: 'success', title: 'Pesanan Diterima! 🍲' });
                     }
                 });
             }
@@ -1160,4 +1081,3 @@ window.toggleAlamatToko = (isJemput) => {
 </script>
 </body>
 </html>
-
