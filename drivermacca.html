@@ -96,7 +96,6 @@
         }
         .dock-btn.active { color: var(--accent-blue); }
 
-        /* FAB & BADGE DENGAN ANIMASI DENYUT */
         .fab-wa-diskon {
             position: fixed; bottom: 110px; right: 20px; z-index: 3000;
             display: flex; align-items: center; justify-content: center;
@@ -105,7 +104,7 @@
             position: relative; width: 50px; height: 50px; background: #fff; 
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
             box-shadow: 0 8px 15px rgba(0,0,0,0.3); z-index: 10; cursor: pointer;
-            animation: pulse-wa 2s infinite; /* Efek denyut */
+            animation: pulse-wa 2s infinite;
         }
         @keyframes pulse-wa {
             0% { box-shadow: 0 0 0 0px rgba(37, 211, 102, 0.7); }
@@ -125,11 +124,6 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.2); white-space: nowrap;
         }
 
-        /* EMPTY STATE ANIMATION */
-        .empty-state {
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; padding-top: 80px; text-align: center;
-        }
         .motor-pulse {
             font-size: 80px; color: #FFD700;
             animation: pulse-gold 2s infinite; margin-bottom: 20px;
@@ -164,7 +158,7 @@
     <div class="p-10 bg-slate-900/50 backdrop-blur-xl rounded-[40px] border border-white/10 text-center w-[85%] max-w-[380px]">
         <h3 class="font-black text-white text-2xl uppercase">Macca Driver</h3>
         <input type="password" id="driver-pin" class="pin-field" placeholder="••" maxlength="2">
-        <button class="btn btn-info w-100 py-3 rounded-pill fw-800" onclick="handleLogin()">MASUK</button>
+        <button class="btn btn-info w-100 py-3 rounded-pill fw-800 mt-3" onclick="handleLogin()">MASUK</button>
     </div>
 </div>
 
@@ -204,9 +198,9 @@
     </div>
 
     <div class="nav-dock">
-        <button class="dock-btn active" onclick="switchTab('delivery', this)"><i class="fa-solid fa-motorcycle"></i>ANTAR</button>
-        <button class="dock-btn" onclick="switchTab('ranking', this)"><i class="fa-solid fa-trophy"></i>RANK</button>
-        <button class="dock-btn" onclick="switchTab('history', this)"><i class="fa-solid fa-clock-rotate-left"></i>LOGS</button>
+        <button class="dock-btn active" id="btn-tab-delivery" onclick="switchTab('delivery', this)"><i class="fa-solid fa-motorcycle"></i>ANTAR</button>
+        <button class="dock-btn" id="btn-tab-ranking" onclick="switchTab('ranking', this)"><i class="fa-solid fa-trophy"></i>RANK</button>
+        <button class="dock-btn" id="btn-tab-history" onclick="switchTab('history', this)"><i class="fa-solid fa-clock-rotate-left"></i>LOGS</button>
     </div>
 </div>
 
@@ -223,224 +217,298 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    let currentDriver = "";
-    let globalOrders = {};
-    let lastOrderCount = 0; // Untuk tracking pesanan baru
+
     const DRIVER_DB = { "11": "HASBI", "22": "REZKY", "33": "ASWAR", "66": "SENDY" };
 
-    // Inisialisasi Audio
+    let currentDriver = "";
+    let globalOrders = {};
+    let lastOrderCount = 0;
     const notifAudio = new Audio('https://github.com/chuacarangki/toko_macca_kasir/raw/refs/heads/main/notif.mp3');
 
-    document.getElementById('log-date-filter').value = new Date().toISOString().split('T')[0];
+   // EXPOSE TO WINDOW
+window.handleLogin = () => {
+    const pin = document.getElementById('driver-pin').value.trim();
+    if (DRIVER_DB[pin]) {
+        currentDriver = DRIVER_DB[pin];
+        localStorage.setItem('macca_driver_logged_in', pin);
+        document.getElementById('driver-name-display').innerText = currentDriver;
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-app').classList.remove('d-none');
+        
+        notifAudio.play().then(() => {
+            notifAudio.pause();
+            notifAudio.currentTime = 0;
+        }).catch(() => {});
 
-    window.handleLogin = () => {
-        const pin = document.getElementById('driver-pin').value;
-        if(DRIVER_DB[pin]) {
-            currentDriver = DRIVER_DB[pin];
-            document.getElementById('driver-name-display').innerText = currentDriver;
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('main-app').classList.remove('d-none');
-            
-            // Pancing audio agar bisa autoplay setelah interaksi user (klik login)
-            notifAudio.play().then(() => {
-                notifAudio.pause();
-                notifAudio.currentTime = 0;
-            }).catch(e => console.log("Audio waiting for interaction"));
+        startListening();
+    } else {
+        Swal.fire({ icon: 'error', title: 'PIN SALAH', background: '#172035', color: '#fff' });
+    }
+};
 
-            startListening();
-        } else {
-            Swal.fire({ icon: 'error', title: 'PIN SALAH', background: '#172035', color: '#fff' });
+window.handleLogout = () => {
+    Swal.fire({
+        title: 'Keluar?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Ya'
+    }).then((r) => {
+        if (r.isConfirmed) {
+            localStorage.removeItem('macca_driver_logged_in');
+            location.reload();
         }
-    };
+    });
+};
 
-    window.handleLogout = () => {
-        Swal.fire({ title: 'Keluar?', icon: 'question', showCancelButton: true, confirmButtonText: 'Ya' }).then((r) => { if (r.isConfirmed) location.reload(); });
-    };
+window.switchTab = (tabName, btn) => {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.add('d-none'));
+    document.getElementById('tab-' + tabName).classList.remove('d-none');
+    document.querySelectorAll('.dock-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    window.renderWithData();
+};
 
-    window.switchTab = (tab, el) => {
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('d-none'));
-        document.querySelectorAll('.dock-btn').forEach(n => n.classList.remove('active'));
-        el.classList.add('active');
-        document.getElementById('tab-' + tab).classList.remove('d-none');
-    };
+window.ambilPesanan = (id) => {
+    update(ref(db, `pesanan_masuk/${id}`), {
+        status: 'Diantar',
+        driver_name: currentDriver
+    }).then(() => {
+        Swal.fire({ icon: 'success', title: 'PESANAN DIAMBIL', timer: 1000, showConfirmButton: false });
+    });
+};
 
-  window.ambilPesanan = (id) => {
-        update(ref(db, `pesanan_masuk/${id}`), { 
-            status: 'Diantar', 
-            driver: currentDriver,      
-            driver_name: currentDriver  
-        });
-        Swal.fire({ icon: 'success', title: 'BERHASIL', text: 'Silahkan menuju lokasi.', timer: 1500, showConfirmButton: false });
-    };
-
-    window.lepasPesanan = (id) => {
-        update(ref(db, `pesanan_masuk/${id}`), { status: 'Menunggu Driver', driver_name: '' });
-    };
+window.lepasPesanan = (id) => {
+    update(ref(db, `pesanan_masuk/${id}`), {
+        status: 'Menunggu Driver',
+        driver_name: null
+    });
+};
 
 window.selesaiAntar = (id) => {
-        const now = new Date();
-        Swal.fire({
-            title: 'Pesanan Selesai?',
-            text: "Pastikan uang sudah diterima jika COD.",
-            icon: 'success',
-            showCancelButton: true,
-            confirmButtonColor: '#28a745',
-            confirmButtonText: 'Selesai & Tutup',
-            cancelButtonText: 'Kembali'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                update(ref(db, `pesanan_masuk/${id}`), {
-                    status: 'Sukses',
-                    driver: currentDriver,      
-                    driver_name: currentDriver,  
-                    finish_time: now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-                    finish_date: now.toISOString().split('T')[0]
-                });
-                Swal.fire({ icon: 'success', title: 'Kerja Bagus!', text: 'Pesanan telah diselesaikan.', timer: 1500, showConfirmButton: false });
-            }
-        });
-    };
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
-    window.openWA = (wa) => {
-        if(!wa) return;
-        let cleanWA = wa.toString().replace(/\D/g, '');
-        if(cleanWA.startsWith('0')) cleanWA = '62' + cleanWA.substring(1);
-        window.open(`https://wa.me/${cleanWA}`, '_blank');
-    };
-
-   window.directMap = (lat, lng) => {
-    if (!lat || !lng || lat === "undefined" || lng === "undefined" || lat === "") {
-        return Swal.fire({
-            icon: 'info',
-            title: 'Titik Peta Kosong',
-            text: 'Gunakan alamat manual karena pelanggan tidak menandai lokasi.',
-            background: '#172035',
-            color: '#fff'
-        });
-    }
-
-    // URL Intent untuk Android & iOS (Langsung mode navigasi driving)
-    const gmapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
-
-    // Membuka aplikasi Maps
-    window.open(gmapsUrl, '_blank');
+    update(ref(db, `pesanan_masuk/${id}`), {
+        status: 'Sukses',
+        finish_date: dateStr,
+        finish_time: timeStr
+    }).then(() => {
+        Swal.fire({ icon: 'success', title: 'PENGANTARAN SELESAI', timer: 1500, showConfirmButton: false });
+    });
 };
-    function startListening() {
-        onValue(ref(db, 'pesanan_masuk'), (s) => {
-            const data = s.val() || {};
-            
-            // Logika Notifikasi Suara
-            const currentWaitingOrders = Object.values(data).filter(o => o.status === 'Menunggu Driver').length;
-            if (currentWaitingOrders > lastOrderCount) {
-                notifAudio.play().catch(e => console.log("Playback failed:", e));
-            }
-            lastOrderCount = currentWaitingOrders;
 
-            globalOrders = data;
-            renderWithData();
-        });
+window.openWA = (num) => {
+    if (!num) return;
+    const cleanNum = num.replace(/[^0-9]/g, '');
+    const formattedNum = cleanNum.startsWith('0') ? '62' + cleanNum.slice(1) : cleanNum;
+    window.open(`https://wa.me/${formattedNum}`, '_blank');
+};
+
+window.directMap = (lat, lng) => {
+    if (!lat || !lng) {
+        Swal.fire('Lokasi tidak tersedia');
+        return;
     }
+    window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+};
 
-    window.renderWithData = () => {
-        const activeTab = document.getElementById('tab-delivery');
-        const rankTab = document.getElementById('tab-ranking');
-        const logContainer = document.getElementById('log-list-container');
-        const selectedDate = document.getElementById('log-date-filter').value;
+// Fungsi hitung jarak (Haversine) - sederhana tapi cukup akurat
+function haversineDistance(lat1, lon1, lat2, lon2) {
+    if (!lat1 || !lon1 || !lat2 || !lon2) return '—';
+    const R = 6371; // Radius Bumi (km)
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2)**2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+    return distance < 1 ? `${(distance * 1000).toFixed(0)} m` : `${distance.toFixed(1)} km`;
+}
+
+// Jarak selalu dihitung dari TITIK TOKO ke pelanggan (bukan dari posisi driver)
+let driverLocation = { lat: -5.1476, lng: 119.4327 };
+
+function startListening() {
+    onValue(ref(db, 'pesanan_masuk'), (s) => {
+        const data = s.val() || {};
+        const currentWaitingOrders = Object.values(data).filter(o => o.status === 'Menunggu Driver').length;
         
-        activeTab.innerHTML = ''; rankTab.innerHTML = ''; logContainer.innerHTML = '';
-        const pointsMap = { "HASBI": 0, "REZKY": 0, "ASWAR": 0, "SENDY": 0 };
-        const historyList = [];
-        let anyOrder = false;
-
-       Object.keys(globalOrders).forEach(id => {
-    const o = globalOrders[id];
-    
-    if(o.status === 'Diterima' || o.status === 'Menunggu Driver' || o.status === 'Diantar') {
-        anyOrder = true;
-        const isMine = o.driver_name === currentDriver;
-        const isTakenByOther = o.status === 'Diantar' && !isMine;
-        const waNumber = o.telepon || o.wa || '';
-
-        // ────────────────────────────────────────────────
-        // BADGE METODE BAYAR (baru ditambahkan di sini)
-        // ────────────────────────────────────────────────
-        let metodeBadge = '';
-        if (o.metode_bayar === 'COD') {
-            metodeBadge = '<span class="badge bg-success text-white px-2 py-1 ms-2" style="font-size:0.75rem;">COD</span>';
-        } else if (o.metode_bayar === 'Bank') {
-            metodeBadge = '<span class="badge bg-primary text-white px-2 py-1 ms-2" style="font-size:0.75rem;">TRANSFER</span>';
-        } else if (o.metode_bayar === 'QRIS') {
-            metodeBadge = '<span class="badge bg-info text-white px-2 py-1 ms-2" style="font-size:0.75rem;">QRIS</span>';
-        } else if (o.metode_bayar) {
-            metodeBadge = `<span class="badge bg-secondary text-white px-2 py-1 ms-2" style="font-size:0.75rem;">${o.metode_bayar}</span>`;
+        if (currentWaitingOrders > lastOrderCount) {
+            notifAudio.play().catch(() => {});
         }
+        lastOrderCount = currentWaitingOrders;
 
-        activeTab.innerHTML += `
-            <div class="col-12 animate__animated animate__fadeInUp">
-                <div class="order-card" style="${isMine ? 'border: 1px solid #00d2ff' : ''}">
-                    <div class="card-top d-flex justify-content-between align-items-start">
-                        <div class="flex-grow-1">
-                            <h4 class="cust-name" onclick="openWA('${waNumber}')">${(o.pelanggan || o.name || 'PELANGGAN').toUpperCase()}</h4>
-                            <span class="cust-phone" onclick="openWA('${waNumber}')"><i class="fa-brands fa-whatsapp me-1"></i>${waNumber}</span>
-                            <p class="small text-white-50 mb-0 mt-2"><i class="fa-solid fa-location-arrow me-1"></i> ${o.alamat || 'Alamat Manual'}</p>
-                        </div>
-                        <div class="text-end">
-                            <div class="fw-800 text-info d-flex align-items-center justify-content-end flex-wrap gap-2">
-                                Rp ${o.total_bayar?.toLocaleString()}
-                                ${metodeBadge}   <!-- <-- BADGE DITEMPATKAN DI SINI -->
-                            </div>
-                            <span class="badge ${isMine ? 'bg-info text-dark' : 'bg-secondary'} mt-1">${o.status === 'Diantar' ? 'PROSES' : o.waktu}</span>
-                        </div>
-                    </div>
-                    <div class="action-grid">
-                        <button class="btn-real btn-maps" onclick="directMap('${o.lat}','${o.lng}')">
-                            <i class="fa-brands fa-google"></i>MAPS
-                        </button>
-                        
-                        ${o.status === 'Diterima' ? 
-                            `<button class="btn-real btn-dapur"><i class="fa-solid fa-fire-burner"></i>PROSES DAPUR</button>` :
-                          (isTakenByOther ? 
-                            `<button class="btn-real btn-locked"><i class="fa-solid fa-lock"></i>DIANTAR ${o.driver_name}</button>` : 
-                          (!isMine ? 
-                            `<button class="btn-real btn-ambil" style="grid-column: span 2;" onclick="ambilPesanan('${id}')"><i class="fa-solid fa-motorcycle"></i>AMBIL PESANAN</button>` : 
-                            `<button class="btn-real btn-cancel" onclick="lepasPesanan('${id}')"><i class="fa-solid fa-xmark"></i>LEPAS</button>
-                             <button class="btn-real btn-done" onclick="selesaiAntar('${id}')"><i class="fa-solid fa-check-double"></i>SELESAI</button>`
-                          ))
-                        }
-                    </div>
-                </div>
-            </div>`;
+        globalOrders = data;
+        window.renderWithData();
+    });
+}
+
+window.renderWithData = () => {
+    const activeTab = document.getElementById('tab-delivery');
+    const rankTab = document.getElementById('tab-ranking');
+    const logContainer = document.getElementById('log-list-container');
+
+    // Default hari ini untuk tab LOGS
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('log-date-filter');
+    if (dateInput && !dateInput.value) {
+        dateInput.value = today;
     }
+    const selectedDate = dateInput?.value || today;
 
-            if(o.status === 'Sukses' && o.driver_name) {
-                if(pointsMap[o.driver_name] !== undefined) pointsMap[o.driver_name] += 500;
-                if(o.finish_date === selectedDate) historyList.push({ name: o.pelanggan || o.name, driver: o.driver_name, time: o.finish_time });
+    activeTab.innerHTML = '';
+    rankTab.innerHTML = '';
+    logContainer.innerHTML = '';
+
+    const pointsMap = { "HASBI": 0, "REZKY": 0, "ASWAR": 0, "SENDY": 0 };
+    let anyOrder = false;
+
+    // ────── TAB ANTAR ──────
+    Object.keys(globalOrders).forEach(id => {
+        const o = globalOrders[id];
+        
+        if (['Diterima', 'Menunggu Driver', 'Diantar'].includes(o.status)) {
+            anyOrder = true;
+            const isMine = o.driver_name === currentDriver;
+            const isTakenByOther = o.status === 'Diantar' && !isMine;
+            const waNumber = o.telepon || o.wa || '';
+
+            // Hitung jarak
+            const jarak = haversineDistance(
+                driverLocation.lat, driverLocation.lng,
+                parseFloat(o.lat), parseFloat(o.lng)
+            );
+
+            // Daftar menu + harga
+            let menuHtml = '';
+            if (o.items?.length) {
+                menuHtml = o.items.map(item => {
+                    const nama = item.n || item.name || item.nama || 'Menu';
+                    const qty = item.qty || 1;
+                    const harga = item.p || item.harga || item.price || 0;
+                    const subtotal = qty * harga;
+                    return `
+                        <div class="d-flex justify-content-between small py-1 border-bottom border-secondary border-opacity-25">
+                            <span>${qty} × ${nama}</span>
+                            <span>Rp ${subtotal.toLocaleString('id-ID')}</span>
+                        </div>`;
+                }).join('');
             }
-        });
 
-        if(!anyOrder) {
-            activeTab.innerHTML = `
-                <div class="empty-state animate__animated animate__fadeIn">
-                    <div class="motor-pulse"><i class="fa-solid fa-motorcycle"></i></div>
-                    <h5 class="fw-800 text-white-50">STAY ALERT!</h5>
-                    <p class="small text-white-50">Belum ada orderan masuk saat ini.</p>
+            let metodeBadge = '';
+            if (o.metode_bayar === 'COD') metodeBadge = '<span class="badge bg-success">COD</span>';
+            else if (['Bank', 'Transfer'].includes(o.metode_bayar)) metodeBadge = '<span class="badge bg-primary">TRANSFER</span>';
+            else if (o.metode_bayar === 'QRIS') metodeBadge = '<span class="badge bg-info">QRIS</span>';
+
+            activeTab.innerHTML += `
+                <div class="col-12 animate__animated animate__fadeInUp">
+                    <div class="order-card" style="${isMine ? 'border: 2px solid #00d2ff; background: rgba(0,210,255,0.08);' : ''}">
+                        <div class="card-top d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h4 class="cust-name" onclick="openWA('${waNumber}')">${(o.pelanggan || o.name || 'PELANGGAN').toUpperCase()}</h4>
+                                <span class="cust-phone" onclick="openWA('${waNumber}')"><i class="fa-brands fa-whatsapp me-1"></i>${waNumber}</span>
+                                <p class="small text-white-50 mb-1 mt-2"><i class="fa-solid fa-location-arrow me-1"></i>${o.alamat || 'Alamat Manual'}</p>
+                                <p class="small text-warning fw-bold mb-0"><i class="fa-solid fa-route me-1"></i>Jarak: ${jarak}</p>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-800 text-info fs-5">Rp ${o.total_bayar?.toLocaleString('id-ID')}</div>
+                                <div class="mt-1">${metodeBadge}</div>
+                                <span class="badge ${isMine ? 'bg-info text-dark' : 'bg-secondary'} mt-1">${o.status === 'Diantar' ? 'PROSES' : o.waktu || 'BARU'}</span>
+                            </div>
+                        </div>
+
+                        <!-- Daftar menu -->
+                        <div class="px-3 pb-2 bg-black bg-opacity-25">
+                            ${menuHtml || '<div class="text-center small opacity-50 py-2">Tidak ada detail menu</div>'}
+                        </div>
+
+                        <div class="action-grid">
+                            <button class="btn-real btn-maps" onclick="directMap('${o.lat}','${o.lng}')">
+                                <i class="fa-brands fa-google"></i>MAPS
+                            </button>
+                            ${o.status === 'Diterima' ? 
+                                `<button class="btn-real btn-dapur"><i class="fa-solid fa-fire-burner"></i>PROSES DAPUR</button>` :
+                                (isTakenByOther ? 
+                                    `<button class="btn-real btn-locked"><i class="fa-solid fa-lock"></i>DIANTAR ${o.driver_name}</button>` : 
+                                    (!isMine ? 
+                                        `<button class="btn-real btn-ambil" style="grid-column: span 2;" onclick="ambilPesanan('${id}')"><i class="fa-solid fa-motorcycle"></i>AMBIL</button>` : 
+                                        `<button class="btn-real btn-cancel" onclick="lepasPesanan('${id}')"><i class="fa-solid fa-xmark"></i>LEPAS</button>
+                                         <button class="btn-real btn-done" onclick="selesaiAntar('${id}')"><i class="fa-solid fa-check-double"></i>SELESAI</button>`
+                                    )
+                                )
+                            }
+                        </div>
+                    </div>
                 </div>`;
         }
 
-        rankTab.innerHTML = '<h5 class="fw-800 mb-4 text-info">DRIVER RANKING</h5>';
-        Object.keys(pointsMap).sort((a,b) => pointsMap[b] - pointsMap[a]).forEach((name, i) => {
-            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1;
-            rankTab.innerHTML += `<div class="modern-item"><div class="fw-800 me-3 fs-4">${medal}</div><div class="flex-grow-1 fw-bold">${name}</div><div class="fw-800 text-warning">${pointsMap[name]} pts</div></div>`;
-        });
-
-        if(historyList.length === 0) {
-            logContainer.innerHTML = '<div class="text-center p-5 opacity-25">Tidak ada data.</div>';
-        } else {
-            historyList.reverse().forEach(h => {
-                logContainer.innerHTML += `<div class="modern-item"><div class="flex-grow-1"><div class="fw-bold small text-uppercase">${h.name}</div><div class="text-white-50" style="font-size:10px">Selesai jam ${h.time}</div></div><span class="badge bg-info text-dark fw-800">${h.driver}</span></div>`;
-            });
+        if (o.status === 'Sukses' && o.driver_name && pointsMap[o.driver_name] !== undefined) {
+            pointsMap[o.driver_name] += 500;
         }
-    };
+    });
+
+    if (!anyOrder) {
+        activeTab.innerHTML = '<div class="text-center p-5 opacity-50"><i class="fa-solid fa-motorcycle motor-pulse"></i><p>Belum ada orderan masuk...</p></div>';
+    }
+
+    // ────── TAB RANKING ──────
+    rankTab.innerHTML = '<h5 class="fw-800 mb-4 text-info">DRIVER RANKING</h5>';
+    Object.keys(pointsMap).sort((a,b) => pointsMap[b] - pointsMap[a]).forEach((name, i) => {
+        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1;
+        rankTab.innerHTML += `<div class="modern-item"><div class="fw-800 me-3 fs-4">${medal}</div><div class="flex-grow-1 fw-bold">${name}</div><div class="fw-800 text-warning">${pointsMap[name]} pts</div></div>`;
+    });
+
+    // ────── TAB LOGS ──────
+    const filteredLogs = Object.entries(globalOrders)
+        .filter(([_, o]) => o.status === 'Sukses' && o.finish_date === selectedDate)
+        .sort((a,b) => (b[1].finish_time || '').localeCompare(a[1].finish_time || ''));
+
+    if (filteredLogs.length === 0) {
+        logContainer.innerHTML = '<div class="text-center p-5 opacity-25">Tidak ada pengantaran selesai hari ini.</div>';
+    } else {
+        filteredLogs.forEach(([id, o]) => {
+            let menuSummary = '';
+            if (o.items?.length) {
+                menuSummary = o.items.map(item => {
+                    const nama = item.n || item.name || item.nama || 'Menu';
+                    const qty = item.qty || 1;
+                    const harga = item.p || item.harga || item.price || 0;
+                    return `${qty}× ${nama} (Rp ${harga.toLocaleString('id-ID')})`;
+                }).join('<br>');
+            }
+
+            logContainer.innerHTML += `
+                <div class="order-card modern-item mb-3" style="border-left: 5px solid #25D366;">
+                    <div class="p-3 w-100">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                            <div style="flex: 1;">
+                                <h6 class="fw-bold mb-1">${o.pelanggan || 'PELANGGAN'}</h6>
+                                <div class="small text-white-50">${menuSummary || 'Tidak ada detail menu'}</div>
+                            </div>
+                            <div class="text-end" style="min-width: 140px;">
+                                <div class="fw-bold text-info">Rp ${o.total_bayar?.toLocaleString('id-ID')}</div>
+                                <div class="small mt-1">
+                                    <strong>${o.driver_name || '?'}</strong><br>
+                                    <span class="badge bg-success mt-1">SUKSES</span>
+                                </div>
+                                <div class="text-white-50 mt-1" style="font-size:0.75rem">${o.finish_time || ''}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        });
+    }
+};
+
+// Auto Login Check
+const savedPin = localStorage.getItem('macca_driver_logged_in');
+if (savedPin && DRIVER_DB[savedPin]) {
+    currentDriver = DRIVER_DB[savedPin];
+    document.getElementById('driver-name-display').innerText = currentDriver;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-app').classList.remove('d-none');
+    startListening();
+}
 </script>
 </body>
 </html>
